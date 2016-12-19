@@ -7,6 +7,7 @@ import {Router, Route, IndexRoute, hashHistory} from 'react-router'
 
 import Browse from './pages/Browse'
 import KeyWords from './pages/KeyWords'
+import WordPath from './pages/WordPath'
 
 const pages = [
   {name: 'KeyWords', path: 'key-words'},
@@ -51,6 +52,7 @@ export default class App extends Component {
       <Route path="/" component={Wrapper}>
         <IndexRoute component={Browse}/>
         <Route path="key-words" component={KeyWords} />
+        <Route path="word-path" component={WordPath} />
       </Route>
     </Router>
   }
