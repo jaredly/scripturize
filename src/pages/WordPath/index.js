@@ -284,7 +284,7 @@ class Timer extends Component {
 
 const makeNextBlock = (pos, next, size, wrong) => {
   const walkThick = size * walkPerc
-  const walkThin = size - walkThick
+  const walkThin = size - walkThick + 5
   const dx = next[0] - pos[0]
   const dy = next[1] - pos[1]
   const width = dx === 0 ? walkThick : walkThin
