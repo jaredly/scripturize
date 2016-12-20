@@ -7,14 +7,15 @@ import WordBoard from './WordBoard'
 
 window.makeMap = makeMap
 
-const scriptureText = "Wherefore, do not spend money for that which is of no worth, nor your labor for that which cannot satisfy. Hearken diligently unto me, and remember the words which I have spoken; and come unto the Holy One of Israel, and feast upon that which perisheth not, neither can be corrupted, and let your soul delight in fatness."
+const scriptureText = "Wherefore, do not spend money for that which is of no worth"
+ + ", nor your labor for that which cannot satisfy. Hearken diligently unto me, and remember the words which I have spoken; and come unto the Holy One of Israel, and feast upon that which perisheth not, neither can be corrupted, and let your soul delight in fatness."
 const justLetters = scriptureText
   .toLowerCase()
   .toUpperCase()
   .replace(/[^a-zA-Z\s]/g, '')
 
 const slideTime = 200
-const minSlide = 50
+const minSlide = 100
 
 export default class WordPath extends Component {
   constructor() {
@@ -22,6 +23,7 @@ export default class WordPath extends Component {
 
     const {matrix, path} = makeMap(justLetters)
     this.state = {
+      won: false,
       text: justLetters,
       start: Date.now(),
       wrong: 0,
@@ -56,6 +58,7 @@ export default class WordPath extends Component {
   }
 
   onTouchStart = e => {
+    if (this.state.won) return
     this._touching = {
       x: e.touches[0].clientX - this.state.dx,
       y: e.touches[0].clientY - this.state.dy
@@ -76,7 +79,7 @@ export default class WordPath extends Component {
     const ay = Math.abs(dy)
 
     const slider = window.innerWidth / 5
-    if (Math.max(ax, ay) < slider * .5) {
+    if (Math.max(ax, ay) < slider * .2) {
       // this.setState({dx, dy})
       return
     }
@@ -88,7 +91,7 @@ export default class WordPath extends Component {
       this.go(0, dy > 0 ? 1 : -1)
     }
     this.moving = true
-    setTimeout(() => this.moving = false, slideTime)
+    setTimeout(() => this.moving = false, slideTime / 3)
   }
 
   onTouchEnd = e => {
@@ -102,7 +105,7 @@ export default class WordPath extends Component {
     window.scrollTop = 0
     window.scrollLeft = 0
     // console.log(e.deltaX, e.deltaY)
-    if (this.moving) return
+    if (this.moving || this.state.won) return
     const dx = this.state.dx + e.deltaX
     const dy = this.state.dy + e.deltaY
     const ax = Math.abs(dx)
@@ -122,6 +125,7 @@ export default class WordPath extends Component {
   }
 
   go(dx, dy) {
+    if (this.state.won) return
     const {walked, taken, x, y, wrong} = this.state
     const nx = x + dx
     const ny = y + dy
@@ -160,6 +164,7 @@ export default class WordPath extends Component {
       }
     }
     this.setState({
+      won: nwrong === 0 && walked.length + 1 === this.state.path.length ? Date.now() : false,
       wrong: nwrong,
       showWrong: nwrong > 2 ? true : this.state.showWrong,
       x: nx, y: ny,
@@ -198,8 +203,23 @@ export default class WordPath extends Component {
       text += matrix[walked[i][0]][walked[i][1]]
     }
 
+    let transform
+    if (this.state.won) {
+      // transform so the whole board is visible
+      const yscale = yn / matrix[0].length
+      const xscale = xn / matrix.length
+      const scale = Math.min(yscale, xscale)
+      transform = `scale(${scale}, ${scale})`
+    } else {
+      transform = `translate(${
+            tx // TODO - (ux  && bigEnough ? dless: 0)
+          }px, ${
+            ty // TODO - (ux || !bigEnough ? 0 : dless)
+          }px)`
+    }
+
     return <div className={css(styles.container)}>
-      <Timer start={this.state.start} />
+      <Timer start={this.state.start} end={this.state.won} />
       <div
         className={css(styles.wordBoard)}
         style={{
@@ -208,32 +228,29 @@ export default class WordPath extends Component {
           overflow: 'hidden',
         }}
       >
-      <div
-        style={{
-          transition:
-            // TODO bigEnough ? '' :
-            `transform ${slideTime / 1000 * 1.5}s ease`,
-          transform: `translate(${
-            tx // TODO - (ux  && bigEnough ? dless: 0)
-          }px, ${
-            ty // TODO - (ux || !bigEnough ? 0 : dless)
-          }px)`,
-        }}
-      >
-        {this.state.walked.map((pos, i) => (
-          <WalkTile
-            key={i}
-            pos={pos}
-            next={i < nwalked - 1 && this.state.walked[i + 1]}
-            wrong={this.state.showWrong && i >= nwalked - wrong}
+        <div
+          style={{
+            transition:
+              // TODO bigEnough ? '' :
+              `transform ${slideTime / 1000 * 1}s ease`,
+            transform: transform,
+            transformOrigin: 'top left',
+          }}
+        >
+          {this.state.walked.map((pos, i) => (
+            <WalkTile
+              key={i}
+              pos={pos}
+              next={i < nwalked - 1 && this.state.walked[i + 1]}
+              wrong={this.state.showWrong && i >= nwalked - wrong}
+              size={size}
+            />
+          ))}
+          <WordBoard
+            matrix={matrix}
             size={size}
           />
-        ))}
-        <WordBoard
-          matrix={matrix}
-          size={size}
-        />
-      </div>
+        </div>
       </div>
       <div className={css(styles.formed)}>
         {text[0] + text.slice(1).toLowerCase()}
@@ -276,14 +293,23 @@ class Timer extends Component {
     this.state = {tick: 0}
   }
   componentDidMount(){
-    this._tick = setInterval(() => this.setState({tick: 0}), 100)
+    if (!this.props.end) {
+      this._tick = setInterval(() => this.setState({tick: 0}), 100)
+    }
+  }
+  componentDidUpdate(prevProps) {
+    if (this.props.end) {
+      clearInterval(this._tick)
+    } else if (prevProps.end) {
+      this._tick = setInterval(() => this.setState({tick: 0}), 100)
+    }
   }
   componentWillUnmount() {
     clearInterval(this._tick)
   }
   render() {
     return <div className={css(styles.timer)}>
-      {timeDiff(Date.now() - this.props.start)}
+      {timeDiff((this.props.end || Date.now()) - this.props.start)}
     </div>
   }
 }
@@ -311,6 +337,7 @@ const makeNextBlock = (pos, next, size, wrong) => {
 const styles = StyleSheet.create({
   container: {
     WebkitOverflowScrolling: 'touch',
+    flex: 1,
   },
 
   timer: {
@@ -321,6 +348,8 @@ const styles = StyleSheet.create({
 
   formed: {
     padding: 10,
+    flex: 1,
+    overflow: 'auto',
   },
 
   wordBoard: {
