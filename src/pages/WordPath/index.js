@@ -14,7 +14,7 @@ const justLetters = scriptureText
   .replace(/[^a-zA-Z\s]/g, '')
 
 const slideTime = 200
-const minSlide = 100
+const minSlide = 50
 
 export default class WordPath extends Component {
   constructor() {
@@ -78,7 +78,6 @@ export default class WordPath extends Component {
     const slider = window.innerWidth / 5
     if (Math.max(ax, ay) < slider * .5) {
       // this.setState({dx, dy})
-      // console.log('ignore slide', ax, ay)
       return
     }
 
@@ -94,6 +93,7 @@ export default class WordPath extends Component {
 
   onTouchEnd = e => {
     this._touching = false
+    this.setState({dx: 0, dy: 0})
   }
 
   onWheel = e => {
@@ -189,6 +189,10 @@ export default class WordPath extends Component {
     // console.log(matrix, x, y)
     const nwalked = walked.length
     const ux = Math.abs(dx) > Math.abs(dy)
+    const swipeMin = 5
+    const bigEnough = Math.abs(ux ? dx : dy) > swipeMin
+    const dd = ux ? dx : dy
+    const dless = dd > 0 ? dd - swipeMin : dd + swipeMin
     let text = ''
     for (let i=0; i<nwalked; i++) {
       text += matrix[walked[i][0]][walked[i][1]]
@@ -206,11 +210,13 @@ export default class WordPath extends Component {
       >
       <div
         style={{
-          transition: `transform ${slideTime / 1000 * 1.5}s ease`,
+          transition:
+            // TODO bigEnough ? '' :
+            `transform ${slideTime / 1000 * 1.5}s ease`,
           transform: `translate(${
-            tx // - (ux ? dx : 0)
+            tx // TODO - (ux  && bigEnough ? dless: 0)
           }px, ${
-            ty // - (ux ? 0 : dy)
+            ty // TODO - (ux || !bigEnough ? 0 : dless)
           }px)`,
         }}
       >

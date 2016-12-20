@@ -12,6 +12,11 @@ const directions = [
           [0,  1],
 ]
 
+const diagonals = [
+  [-1, -1],        [1, -1],
+  [-1,  1],        [1,  1],
+]
+
 const next = (board, letters, i, x, y) => {
   if (i >= letters.length) return []
   const dirsLeft = directions.filter(d => !board[`${x + d[0]},${y + d[1]}`])
@@ -32,6 +37,19 @@ const next = (board, letters, i, x, y) => {
 const letters = 'abcdefghijklmnopqrstuvwxyz'.toUpperCase()
 const randLetter = () => {
   return letters[parseInt(Math.random() * letters.length)]
+}
+
+const allowedRandomLetter = (x, y, board) => {
+  const disallowed = []
+  diagonals.forEach(([dx, dy]) => {
+    const pos = `${x + dx},${y + dy}`
+    if (board[pos]) disallowed.push(board[pos])
+  })
+  let letter = randLetter()
+  while (disallowed.indexOf(letter) !== -1) {
+    letter = randLetter()
+  }
+  return letter
 }
 
 const toMatrix = (board, llpath) => {
@@ -56,7 +74,9 @@ const toMatrix = (board, llpath) => {
     for (let y = miny; y < maxy + 1; y++) {
       const pos = `${x},${y}`
       if (board[pos]) row.push(board[pos])
-      else row.push(randLetter())
+      else {
+        row.push(allowedRandomLetter(x, y, board))
+      }
     }
   }
   return {matrix, path: path.map(([x, y]) => [x - minx, y - miny])}
