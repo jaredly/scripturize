@@ -61,6 +61,7 @@ export default class KeyWords extends Component {
 const styles = StyleSheet.create({
 
   container: {
+    flex: 1,
   },
 })
 
