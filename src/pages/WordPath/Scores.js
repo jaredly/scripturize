@@ -28,7 +28,7 @@ const Scores = ({scores, justNow, text, close}) => (
       </table>
     </div>
     <div style={{alignItems: 'center'}}>
-      Get a ★ for completing in under {parseInt(text.length / 3)}s
+      Get a ★ for completing in under {parseInt(text.length / 2)}s
     </div>
     <button
       onClick={close}

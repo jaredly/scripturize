@@ -5,6 +5,66 @@ import {css, StyleSheet} from 'aphrodite'
 
 import {hashHistory} from 'react-router'
 
+const isCurrent = scores => {
+  const aMonthAgo = Date.now() - 1000 * 60 * 60 * 24 * 30
+  if (!scores) return false
+  for (let game in scores) {
+    if (scores[game].some(score => score.date > aMonthAgo)) {
+      return true
+    }
+  }
+  return false
+}
+
+const organizeScriptures = (currentScriptures, scores) => {
+  const current = []
+  // const mastered = []
+  const rest = []
+  currentScriptures.forEach(reference => {
+    if (isCurrent(scores[reference])) {
+      current.push(reference)
+    } else {
+      rest.push(reference)
+    }
+  })
+  return {current, rest}
+}
+
+const renderReference = (reference) => {
+  return <div
+    key={reference}
+    onClick={() => hashHistory.push('/' + reference)}
+    className={css(styles.scripture)}
+  >
+    {reference}
+  </div>
+}
+// TODO played # times
+
+const renderScriptures = (currentScriptures, scores) => {
+  const {current, rest} = organizeScriptures(currentScriptures, scores)
+  return (
+    <div className={css(styles.scriptures)}>
+      <div className={css(styles.sectionHeader)}>
+        Active
+      </div>
+      <div className={css(styles.section)}>
+        {current.length ? current.map(reference => (
+          renderReference(reference)
+        )) : <div className={css(styles.scripture)}>No active scriptures</div>}
+      </div>
+      <div className={css(styles.sectionHeader)}>
+        Inactive
+      </div>
+      <div className={css(styles.section)}>
+        {rest.length ? rest.map(reference => (
+          renderReference(reference)
+        )) : <div className={css(styles.scripture)}>No inactive scriptures</div>}
+      </div>
+    </div>
+  )
+}
+
 export default class Browse extends Component {
   constructor() {
     super()
@@ -46,19 +106,7 @@ export default class Browse extends Component {
       </div>
     }
     return <div className={css(styles.container)}>
-      <div className={css(styles.scriptures)}>
-        {currentScriptures.map(
-          reference => (
-            <div
-              key={reference}
-              onClick={() => hashHistory.push('/' + reference)}
-              className={css(styles.scripture)}
-            >
-              {reference}
-            </div>
-          )
-        )}
-      </div>
+      {renderScriptures(currentScriptures, this.props.scores)}
       <button
         onClick={() => this.setState({adding: true})}
         className={css(styles.addButton)}
@@ -79,9 +127,16 @@ const styles = StyleSheet.create({
     flexDirection: 'column',
     flex: 1,
     overflow: 'auto',
+    WebkitOverflowScrolling: 'touch',
   },
   scripture: {
     padding: '10px 20px',
+  },
+
+  sectionHeader: {
+    padding: '5px 20px',
+    backgroundColor: '#aef',
+    color: '#0062bb',
   },
 
   addButton: {

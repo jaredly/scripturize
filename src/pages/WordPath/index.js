@@ -31,7 +31,7 @@ const initialState = scriptureText => {
     won: false,
     showingScores: false,
     text: letters,
-    start: Date.now(),
+    // start: Date.now(),
     wrong: 0,
     showWrong: false,
     matrix,
@@ -191,6 +191,7 @@ export default class WordPath extends Component {
       })
     }
     this.setState({
+      start: this.state.start || Date.now(),
       won,
       showingScores: won,
       wrong: nwrong,
@@ -235,11 +236,11 @@ export default class WordPath extends Component {
     }
 
     return <div className={css(styles.container)}>
-      <Timer
+      {this.state.start && <Timer
         className={css(styles.timer)}
         start={this.state.start}
         end={this.state.won}
-      />
+      />}
       <div className={css(styles.wordBoard)} style={{width: WIDTH, height: HEIGHT}}>
         <div
           style={{

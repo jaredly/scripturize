@@ -8,11 +8,14 @@ import {Router, Route, IndexRoute, hashHistory} from 'react-router'
 import Browse from './pages/Browse'
 import KeyWords from './pages/KeyWords'
 import WordPath from './pages/WordPath'
+import FallingWords from './pages/FallingWords'
 import ReferencePage from './pages/Reference'
 
-const pages = [
-  {name: 'KeyWords', path: 'key-words'},
-  {name: 'WordPath', path: 'word-path'},
+const games = [
+  {title: 'Word Path', path: 'word-path', color: '#aef'},
+  {title: 'Falling words', path: 'falling-words', color: '#fea'},
+  // {title: 'Falling blocks', path: 'falling-blocks'},
+  // {title: 'Key Words', path: 'key-words'},
 ]
 
 const scriptureSections = require('./scripture-mastery.json')
@@ -26,8 +29,8 @@ Object.keys(scriptureSections).forEach(section => {
 
 const title = (reference, secondRoute) => {
   if (!reference) return 'Scripturize'
-  for (let page of pages) {
-    if (page.path === secondRoute.path) return page.name
+  for (let game of games) {
+    if (game.path === secondRoute.path) return game.title
   }
   return reference
 }
@@ -131,7 +134,7 @@ class Wrapper extends Component {
         <div className={css(styles.side)}/>
       </div>
       {React.cloneElement(children, {
-        pages,
+        games,
         scores,
         scriptures,
         currentScriptures,
@@ -144,10 +147,11 @@ class Wrapper extends Component {
   }
 }
 
-const ReferenceWrapper = ({children, params, scores, saveScore}) => React.cloneElement(children, {
+const ReferenceWrapper = ({children, params, scores, saveScore, games}) => React.cloneElement(children, {
   scriptureText: scriptures[params.reference],
   scriptureReference: params.reference,
   scores: scores[params.reference] || {},
+  games,
   saveScore: (game, score) => saveScore(params.reference, game, score),
   clearScores: game => clearScores(params.reference, game),
 })
@@ -165,6 +169,7 @@ export default class App extends Component {
           <IndexRoute component={ReferencePage} />
           <Route path="key-words" component={KeyWords} />
           <Route path="word-path" component={WordPath} />
+          <Route path="falling-words" component={FallingWords} />
         </Route>
       </Route>
     </Router>
