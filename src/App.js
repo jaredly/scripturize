@@ -80,7 +80,7 @@ class Wrapper extends Component {
           </button>}
         </div>
         <div className={css(styles.title)}>
-          {title(params, routes[2])}
+          {title(params.reference, routes[2])}
         </div>
         <div className={css(styles.side)}/>
       </div>
