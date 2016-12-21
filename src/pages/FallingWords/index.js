@@ -47,8 +47,8 @@ const initialState = (scriptureText, difficulty) => {
     gotten: 0,
     score: 0,
     scoreMult: {
-      easy: 1,
-      medium: 2,
+      easy: 3,
+      medium: 4,
       hard: 5,
     }[difficulty],
     showingPreScreen: false,
@@ -124,7 +124,7 @@ export default class FallingWords extends Component {
       // const wordsOnScreen = this.state.wordsOnScreen.slice()
       // wordsOnScreen.splice(wordsOnScreen.indexOf(i), 1)
       this.setState({
-        score: this.state.score + 2 * this.state.scoreMult,
+        score: this.state.score + this.state.scoreMult,
         // wordsOnScreen,
         done: {
           ...this.state.done,
