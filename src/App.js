@@ -15,7 +15,14 @@ const pages = [
   {name: 'WordPath', path: 'word-path'},
 ]
 
-const scriptures = require('./scripture-mastery.json')
+const scriptureSections = require('./scripture-mastery.json')
+
+const scriptures = {}
+Object.keys(scriptureSections).forEach(section => {
+  for (let ref in scriptureSections[section]) {
+    scriptures[ref] = scriptureSections[section][ref]
+  }
+})
 
 const title = (reference, secondRoute) => {
   if (!reference) return 'Scripturize'
@@ -27,14 +34,16 @@ const title = (reference, secondRoute) => {
 
 const tryLocalStorage = key => {
   try {
-    return JSON.parse(localStorage[scoresKey])
+    return JSON.parse(localStorage[key])
   } catch (e) {
     return null
   }
 }
 
 const currentScripturesKey = 'memorize:current-scriptures'
-const loadCurrentScriptures = () => tryLocalStorage(currentScripturesKey) || []
+const loadCurrentScriptures = () => tryLocalStorage(currentScripturesKey) || [
+  'Moses 1:39'
+]
 const saveCurrentScriptures = scriptures => {
   localStorage[currentScripturesKey] = JSON.stringify(scriptures)
 }
@@ -52,7 +61,7 @@ class Wrapper extends Component {
     super()
     this.state = {
       scores: loadScores(),
-      scriptures: loadCurrentScriptures(),
+      currentScriptures: loadCurrentScriptures(),
     }
   }
 
@@ -83,16 +92,16 @@ class Wrapper extends Component {
   }
 
   addScripture = reference => {
-    const scriptures = this.state.scriptures.concat([reference]).sort()
+    const currentScriptures = this.state.currentScriptures.concat([reference]).sort()
 
-    saveCurrentScriptures(scriptures)
-    this.setState({scriptures})
+    saveCurrentScriptures(currentScriptures)
+    this.setState({currentScriptures})
   }
 
   removeScripture = reference => {
-    const scriptures = this.state.scriptures.filter(r => r !== reference)
-    saveCurrentScriptures(scriptures)
-    this.setState({scriptures})
+    const currentScriptures = this.state.currentScriptures.filter(r => r !== reference)
+    saveCurrentScriptures(currentScriptures)
+    this.setState({currentScriptures})
   }
 
   onBack = () => {
@@ -105,7 +114,7 @@ class Wrapper extends Component {
 
   render() {
     const {children, routes, params} = this.props
-    const {scores} = this.state
+    const {scores, currentScriptures} = this.state
     return <div className={css(styles.container)}>
       <div className={css(styles.top)}>
         <div className={css(styles.side)}>
@@ -124,6 +133,8 @@ class Wrapper extends Component {
       {React.cloneElement(children, {
         pages,
         scores,
+        scriptures,
+        currentScriptures,
         saveScore: this.saveScore,
         clearScores: this.clearScores,
         addScripture: this.addScripture,
@@ -166,7 +177,7 @@ const styles = StyleSheet.create({
   },
 
   side: {
-    width: 100,
+    width: 80,
     flexDirection: 'row',
     alignSelf: 'stretch',
   },

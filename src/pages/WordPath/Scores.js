@@ -5,27 +5,31 @@ import {css, StyleSheet} from 'aphrodite'
 
 const Scores = ({scores, justNow, text, close}) => (
   <div className={css(styles.scores)}>
-    <table>
-      <thead>
-        <tr>
-          <th  className={css(styles.head)}>Seconds</th>
-          <th className={css(styles.head)}>Letters/s</th>
-        </tr>
-      </thead>
-      <tbody>
-        {scores.map((score, i) => (
-          <tr key={i}>
-            <td className={css(styles.cell, score.date === justNow && styles.thisScore)}>
-              {parseInt(score.score / 1000)}s
-            </td>
-            <td className={css(styles.cell, score.date === justNow && styles.thisScore)}>
-              {parseInt(10 * text.length / (score.score / 1000)) / 10}
-            </td>
+    <div style={{overflow: 'auto', flex: '1'}}>
+      <table>
+        <thead>
+          <tr>
+            <th  className={css(styles.head)}>Seconds</th>
+            <th className={css(styles.head)}>Letters/s</th>
           </tr>
-        ))}
-      </tbody>
-    </table>
-    <div style={{flex: 1}}/>
+        </thead>
+        <tbody>
+          {scores.map((score, i) => (
+            <tr key={i}>
+              <td className={css(styles.cell, score.date === justNow && styles.thisScore)}>
+                {parseInt(score.score / 1000)}s
+              </td>
+              <td className={css(styles.cell, score.date === justNow && styles.thisScore)}>
+                {parseInt(10 * text.length / (score.score / 1000)) / 10}
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+    <div style={{alignItems: 'center'}}>
+      Get a ★ for completing in under {parseInt(text.length / 3)}s
+    </div>
     <button
       onClick={close}
       className={css(styles.button)}

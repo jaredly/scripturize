@@ -15,8 +15,8 @@ const HEIGHT = WIDTH
 const justLetters = text => text
   .toLowerCase()
   .toUpperCase()
-  .replace(/[^a-zA-Z.;]+/g, ' ').trim()
-  .replace(/[.;]\s+/g, n => n.trim())
+  .replace(/[^a-zA-Z.;?!]+/g, ' ').trim()
+  .replace(/[.;?!]\s+/g, n => n.trim())
 
 const slideTime = 200
 const minSlide = 100

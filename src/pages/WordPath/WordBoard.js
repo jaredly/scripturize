@@ -34,24 +34,6 @@ export default class WordBoard extends Component {
   }
 }
 
-/*
- *
-      {this.props.board.map((row, r) => (
-        <div key={r} className={css(styles.row)}>
-          {row.map((item, c) => (
-            <div key={c} className={css(styles.item)} style={{
-              top: r * size,
-              left: c * size,
-              width: size,
-              height: size,
-            }}>
-              {item}
-            </div>
-          ))}
-        </div>
-      ))}
- * */
-
 const styles = StyleSheet.create({
   container: {
   },

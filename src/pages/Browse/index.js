@@ -6,10 +6,48 @@ import {css, StyleSheet} from 'aphrodite'
 import {hashHistory} from 'react-router'
 
 export default class Browse extends Component {
+  constructor() {
+    super()
+    this.state = {
+      adding: false,
+    }
+  }
+
   render() {
+    const {currentScriptures, scriptures} = this.props
+    if (this.state.adding) {
+      const smap = {}
+      currentScriptures.forEach(k => smap[k] = true)
+      return <div className={css(styles.container)}>
+        <div className={css(styles.scriptures)}>
+          {Object.keys(scriptures).map(
+            reference => (
+              smap[reference] ?
+                null :
+                <div
+                  key={reference}
+                  className={css(styles.scripture)}
+                  onClick={() => this.props.addScripture(reference)}
+                >
+                  {reference}
+                  <div className={css(styles.scriptureText)}>
+                    {scriptures[reference]}
+                  </div>
+                </div>
+            )
+          )}
+        </div>
+        <button
+          onClick={() => this.setState({adding: false})}
+          className={css(styles.addButton)}
+        >
+          Done
+        </button>
+      </div>
+    }
     return <div className={css(styles.container)}>
       <div className={css(styles.scriptures)}>
-        {Object.keys(this.props.scriptures).map(
+        {currentScriptures.map(
           reference => (
             <div
               key={reference}
@@ -21,15 +59,12 @@ export default class Browse extends Component {
           )
         )}
       </div>
-      {/*this.props.pages.map(page => (
-        <button
-          key={page.path}
-          onClick={() => hashHistory.push('/' + page.path)}
-          className={css(styles.button)}
-        >
-          {page.name}
-        </button>
-      ))*/}
+      <button
+        onClick={() => this.setState({adding: true})}
+        className={css(styles.addButton)}
+      >
+        Add scriptures
+      </button>
     </div>
   }
 }
@@ -37,13 +72,30 @@ export default class Browse extends Component {
 const styles = StyleSheet.create({
 
   container: {
+    flex: 1,
     // flexDirection: 'row',
   },
   scriptures: {
     flexDirection: 'column',
+    flex: 1,
+    overflow: 'auto',
   },
   scripture: {
     padding: '10px 20px',
+  },
+
+  addButton: {
+    backgroundColor: '#aef',
+    padding: '10px 20px',
+    marginTop: 10,
+    border: 'none',
+    fontSize: '1.3em',
+    fontWeight: 200,
+  },
+
+  scriptureText: {
+    fontSize: '.8em',
+    marginTop: 5,
   },
 
   button: {
