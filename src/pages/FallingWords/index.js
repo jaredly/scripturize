@@ -12,47 +12,33 @@ const splitWords = text => text
   // .replace(/[^a-zA-Z.;?!]+/g, ' ').trim()
   // .replace(/[.;?!]\s+/g, n => n.trim())
 
-// http://stackoverflow.com/questions/2450954/how-to-randomize-shuffle-a-javascript-array
-function shuffle(array) {
-  var currentIndex = array.length
-    , temporaryValue
-    , randomIndex
-    ;
-
-  // While there remain elements to shuffle...
-  while (0 !== currentIndex) {
-
-    // Pick a remaining element...
-    randomIndex = Math.floor(Math.random() * currentIndex);
-    currentIndex -= 1;
-
-    // And swap it with the current element.
-    temporaryValue = array[currentIndex];
-    array[currentIndex] = array[randomIndex];
-    array[randomIndex] = temporaryValue;
+function betterShuffle(array) {
+  const dest = []
+  const idxs = array.map((_, i) => i)
+  while (idxs.length) {
+    let nix
+    if (dest.length > idxs[0] + 4) {
+      console.log('ovverr', idxs[0], )
+      nix = 0
+    } else {
+      nix = Math.min(idxs.length - 1, parseInt(Math.random() * 3 + 0 /* .5 */))
+    }
+    dest.push(array[idxs[nix]])
+    idxs.splice(nix, 1)
   }
-
-  return array;
-}
-
-// a somewhat localized shuffle
-function chunkedShuffle(array, chunkSize) {
-  let res = []
-  for (let i=0; i<array.length; i+=chunkSize) {
-    res = res.concat(shuffle(array.slice(i, i + chunkSize)))
-  }
-  return res
+  return dest
 }
 
 const GAME_ID = 'falling-words'
 
 const initialState = (scriptureText, difficulty) => {
   const words = splitWords(scriptureText)
-  const ordered = chunkedShuffle(words.slice(), 5)
+  const ordered = betterShuffle(words.slice())
   return {
     times: [Date.now()],
     words,
     ordered,
+    done: {},
     wordsOnScreen: [0],
     offsets: ordered.map(() => Math.random()),
     sent: 1,
@@ -69,12 +55,12 @@ const initialState = (scriptureText, difficulty) => {
     hangTime: {
       easy: 15,
       medium: 10,
-      hard: 8,
+      hard: 5,
     }[difficulty],
     addSpeed: {
       easy: 1000,
       medium: 750,
-      hard: 550,
+      hard: 450,
     }[difficulty]
   }
 }
@@ -111,7 +97,12 @@ export default class FallingWords extends Component {
         times: this.state.times.concat([Date.now()]),
       })
     }
-    if (this.state.times[this.state.wordsOnScreen[0]] + this.state.hangTime * 1000 < Date.now()) {
+    for (let i=0; i<this.state.wordsOnScreen.length; i++) {
+      if (this.state.done[this.state.wordsOnScreen[i]]) continue;
+      if (this.state.times[this.state.wordsOnScreen[i]] + this.state.hangTime * 1000 > Date.now()) {
+        break
+      }
+
       // lost!
       const now = Date.now()
       this.props.saveScore(GAME_ID, {
@@ -122,6 +113,7 @@ export default class FallingWords extends Component {
         won: now,
         showingPreScreen: true,
       })
+      return
     }
   }
 
@@ -129,14 +121,19 @@ export default class FallingWords extends Component {
     e.preventDefault()
     e.stopPropagation()
     if (this.state.ordered[i] === this.state.words[this.state.gotten]) {
-      const wordsOnScreen = this.state.wordsOnScreen.slice()
-      wordsOnScreen.splice(wordsOnScreen.indexOf(i), 1)
+      // const wordsOnScreen = this.state.wordsOnScreen.slice()
+      // wordsOnScreen.splice(wordsOnScreen.indexOf(i), 1)
       this.setState({
         score: this.state.score + 2 * this.state.scoreMult,
-        wordsOnScreen,
+        // wordsOnScreen,
+        done: {
+          ...this.state.done,
+          [i]: true,
+        },
         gotten: this.state.gotten + 1,
         wrong: null,
       })
+      // win condition
       if (this.state.gotten === this.state.words.length - 1) {
         const now = Date.now()
         this.props.saveScore(GAME_ID, {
@@ -209,13 +206,18 @@ export default class FallingWords extends Component {
             position: 'absolute',
             top: 0,
             left: 0,
+            opacity: this.state.done[wi] ? 0 : 1,
             backgroundColor: wrong === wi ? 'red' : '#aef',
             display: wi >= offsets.length ? 'none' : 'block',
             transform: `translate(${offsets[wi] * width}px, ${
               i === wordsOnScreen.length - 1 ?
               -50 : height
             }px)`,
-            transition: `transform ${hangTime}s linear, background-color 1s ease`,
+            transition: `
+            transform ${hangTime}s linear,
+            background-color 1s ease,
+            opacity .1s ease-out
+            `,
           }}
         >
           {ordered[wi]}

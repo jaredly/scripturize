@@ -317,6 +317,7 @@ const styles = StyleSheet.create({
 
   wordBoard: {
     overflow: 'hidden',
+    marginBottom: 50,
   },
 
   item: {

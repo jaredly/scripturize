@@ -149,7 +149,7 @@ const styles = StyleSheet.create({
   },
 
   scriptureText: {
-    fontSize: '.8em',
+    fontSize: '.9em',
     marginTop: 5,
   },
 

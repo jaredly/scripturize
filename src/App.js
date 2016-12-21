@@ -11,12 +11,24 @@ import WordPath from './pages/WordPath'
 import FallingWords from './pages/FallingWords'
 import ReferencePage from './pages/Reference'
 
-const games = [
-  {title: 'Word Path', path: 'word-path', color: '#aef'},
-  {title: 'Falling words', path: 'falling-words', color: '#fea'},
+const games = {
+  'word-path': {
+    title: 'Word Path',
+    path: 'word-path',
+    color: '#aef',
+    sortScores: (a, b) => a.score - b.score,
+    formatScore: score => `${parseInt(score.score / 1000)}s`,
+  },
+  'falling-words': {
+    title: 'Falling words',
+    path: 'falling-words',
+    color: '#fea',
+    sortScores: (a, b) => b.score - a.score,
+    formatScore: score => score.score,
+  },
   // {title: 'Falling blocks', path: 'falling-blocks'},
   // {title: 'Key Words', path: 'key-words'},
-]
+}
 
 const scriptureSections = require('./scripture-mastery.json')
 
@@ -29,8 +41,8 @@ Object.keys(scriptureSections).forEach(section => {
 
 const title = (reference, secondRoute) => {
   if (!reference) return 'Scripturize'
-  for (let game of games) {
-    if (game.path === secondRoute.path) return game.title
+  for (let path in games) {
+    if (path === secondRoute.path) return games[path].title
   }
   return reference
 }
@@ -57,7 +69,6 @@ const saveScores = scores => {
   localStorage[scoresKey] = JSON.stringify(scores)
 }
 
-const sortScores = (a, b) => a.score - b.score
 
 class Wrapper extends Component {
   constructor() {
@@ -87,7 +98,7 @@ class Wrapper extends Component {
         ...this.state.scores[reference],
         [game]: ((this.state.scores[reference] || {})[game] || []).concat([
           score
-        ]).sort(sortScores)
+        ]).sort(games[game].sortScores)
       }
     }
     saveScores(scores)

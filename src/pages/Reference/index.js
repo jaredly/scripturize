@@ -9,22 +9,22 @@ import {hashHistory} from 'react-router'
 // also maybe chunking?
 export default class ReferencePage extends Component {
   render() {
-    const {scriptureText, scriptureReference, scores} = this.props
+    const {scriptureText, scriptureReference, scores, games} = this.props
     return <div className={css(styles.container)}>
       <div className={css(styles.preview)}>
         {scriptureText}
       </div>
-      {this.props.games.map(game => (
+      {Object.keys(games).map(path => (
         <button
-          key={game.path}
+          key={path}
           className={css(styles.button)}
-          style={{backgroundColor: game.color}}
-          onClick={() => hashHistory.push(`/${scriptureReference}/${game.path}`)}
+          style={{backgroundColor: games[path].color}}
+          onClick={() => hashHistory.push(`/${scriptureReference}/${path}`)}
         >
-          {game.title}
-          {scores[game.path] ?
+          {games[path].title}
+          {scores[path] ?
             <div className={css(styles.score)}>
-              {parseInt(scores[game.path][0].score / 1000)}s
+              {games[path].formatScore(scores[path][0])}
             </div> :
             <div className={css(styles.score)}>
               never played
