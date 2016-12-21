@@ -4,27 +4,34 @@ import {css, StyleSheet} from 'aphrodite'
 
 import makeMap from './makeMap'
 import WordBoard from './WordBoard'
+import WalkTiles from './WalkTiles'
+import Timer from './Timer'
 
 window.makeMap = makeMap
 
+/*
 const scriptureText = "Wherefore, do not spend money for that which is of no worth"
  + ", nor your labor for that which cannot satisfy. Hearken diligently unto me, and remember the words which I have spoken; and come unto the Holy One of Israel, and feast upon that which perisheth not, neither can be corrupted, and let your soul delight in fatness."
-const justLetters = scriptureText
+ */
+
+const justLetters = text => text
   .toLowerCase()
   .toUpperCase()
-  .replace(/[^a-zA-Z\s]/g, '')
+  .replace(/[^a-zA-Z]+/g, ' ').trim()
 
 const slideTime = 200
 const minSlide = 100
+const SLIDE = true
 
 export default class WordPath extends Component {
-  constructor() {
+  constructor(props) {
     super()
 
-    const {matrix, path} = makeMap(justLetters)
+    const letters = justLetters(props.scriptureText)
+    const {matrix, path} = makeMap(letters)
     this.state = {
       won: false,
-      text: justLetters,
+      text: letters,
       start: Date.now(),
       wrong: 0,
       showWrong: false,
@@ -79,8 +86,8 @@ export default class WordPath extends Component {
     const ay = Math.abs(dy)
 
     const slider = window.innerWidth / 5
-    if (Math.max(ax, ay) < slider * .2) {
-      // this.setState({dx, dy})
+    if (Math.max(ax, ay) < slider * .5 ) {
+      if (SLIDE) this.setState({dx, dy})
       return
     }
 
@@ -179,7 +186,7 @@ export default class WordPath extends Component {
 
   render() {
     const {x, y, matrix, dx, dy, walked, wrong} = this.state
-    const width = window.innerWidth
+    const width = Math.min(window.innerWidth, window.innerHeight)
     const height = width
     const yn = 5
     const xn = 5
@@ -191,13 +198,12 @@ export default class WordPath extends Component {
     const tx = cx + xmargin
     const ty = cy + ymargin
     const tsize = size / 3
-    // console.log(matrix, x, y)
     const nwalked = walked.length
     const ux = Math.abs(dx) > Math.abs(dy)
     const swipeMin = 5
     const bigEnough = Math.abs(ux ? dx : dy) > swipeMin
     const dd = ux ? dx : dy
-    const dless = dd > 0 ? dd - swipeMin : dd + swipeMin
+    const dless = Math.sqrt(dd > 0 ? dd - swipeMin : dd + swipeMin)
     let text = ''
     for (let i=0; i<nwalked; i++) {
       text += matrix[walked[i][0]][walked[i][1]]
@@ -211,41 +217,37 @@ export default class WordPath extends Component {
       const scale = Math.min(yscale, xscale)
       transform = `scale(${scale}, ${scale})`
     } else {
-      transform = `translate(${
-            tx // TODO - (ux  && bigEnough ? dless: 0)
-          }px, ${
-            ty // TODO - (ux || !bigEnough ? 0 : dless)
-          }px)`
+      if (SLIDE) {
+        transform = `translate(${
+              tx - (ux  && bigEnough ? dless: 0)
+            }px, ${
+              ty - (ux || !bigEnough ? 0 : dless)
+            }px)`
+      } else {
+        transform = `translate(${tx}px, ${ty}px)`
+      }
     }
 
     return <div className={css(styles.container)}>
-      <Timer start={this.state.start} end={this.state.won} />
-      <div
-        className={css(styles.wordBoard)}
-        style={{
-          width,
-          height,
-          overflow: 'hidden',
-        }}
-      >
+      <Timer
+        className={css(styles.timer)}
+        start={this.state.start}
+        end={this.state.won}
+      />
+      <div className={css(styles.wordBoard)} style={{width, height}}>
         <div
           style={{
-            transition:
-              // TODO bigEnough ? '' :
-              `transform ${slideTime / 1000 * 1}s ease`,
+            transition: bigEnough ? '' : `transform ${slideTime / 1000 * 1}s ease`,
             transform: transform,
             transformOrigin: 'top left',
           }}
         >
-          {this.state.walked.map((pos, i) => (
-            <WalkTile
-              key={i}
-              pos={pos}
-              next={i < nwalked - 1 && this.state.walked[i + 1]}
-              wrong={this.state.showWrong && i >= nwalked - wrong}
-              size={size}
-            />
-          ))}
+          <WalkTiles
+            size={size}
+            wrong={this.state.wrong}
+            walked={this.state.walked}
+            showWrong={this.state.showWrong}
+          />
           <WordBoard
             matrix={matrix}
             size={size}
@@ -258,81 +260,6 @@ export default class WordPath extends Component {
     </div>
   }
 }
-
-const walkPerc = .8
-const WalkTile = ({pos, next, size, wrong}) => {
-  return <div>
-    <div
-      style={{
-        left: pos[0] * size + size * (.5 - walkPerc/2),
-        top: pos[1] * size + size * (.5 - walkPerc/2),
-        width: size * walkPerc,
-        height: size * walkPerc,
-      }}
-      className={css(styles.walkedTile, wrong && styles.wrongTile)}
-    />
-    {next && makeNextBlock(pos, next, size, wrong)}
-  </div>
-}
-
-const timeDiff = dd => {
-  const secs = (dd/1000)|0
-  let s = secs % 60
-  if (s < 10) s = '0' + s
-  const mins = (secs / 60)|0
-  let m = mins % 60
-  if (mins < 60) return m + ':' + s
-  if (m < 10) m = '0' + m
-  const h = (mins / 60)|0
-  return `${h}:${m}:${s}`
-}
-
-class Timer extends Component {
-  constructor(){
-    super()
-    this.state = {tick: 0}
-  }
-  componentDidMount(){
-    if (!this.props.end) {
-      this._tick = setInterval(() => this.setState({tick: 0}), 100)
-    }
-  }
-  componentDidUpdate(prevProps) {
-    if (this.props.end) {
-      clearInterval(this._tick)
-    } else if (prevProps.end) {
-      this._tick = setInterval(() => this.setState({tick: 0}), 100)
-    }
-  }
-  componentWillUnmount() {
-    clearInterval(this._tick)
-  }
-  render() {
-    return <div className={css(styles.timer)}>
-      {timeDiff((this.props.end || Date.now()) - this.props.start)}
-    </div>
-  }
-}
-
-const makeNextBlock = (pos, next, size, wrong) => {
-  const walkThick = size * walkPerc
-  const walkThin = size - walkThick + 5
-  const dx = next[0] - pos[0]
-  const dy = next[1] - pos[1]
-  const width = dx === 0 ? walkThick : walkThin
-  const height = dy === 0 ? walkThick : walkThin
-  // console.log(dx, dy, walkThin, walkThick, width, height)
-  return <div
-    style={{
-      width: width,
-      height: height,
-      left: pos[0] * size + size / 2 + size / 2 * dx - width / 2,
-      top: pos[1] * size + size / 2 + size / 2 * dy - height / 2,
-    }}
-    className={css(styles.walkedTile, wrong && styles.wrongTile)}
-  />
-}
-
 
 const styles = StyleSheet.create({
   container: {
@@ -350,22 +277,14 @@ const styles = StyleSheet.create({
     padding: 10,
     flex: 1,
     overflow: 'auto',
+    lineHeight: 1.5,
   },
 
   wordBoard: {
-  },
-
-  walkedTile: {
-    position: 'absolute',
-    backgroundColor: '#aaf',
-  },
-
-  wrongTile: {
-    backgroundColor: '#faa',
+    overflow: 'hidden',
   },
 
   item: {
     position: 'absolute',
   },
 })
-

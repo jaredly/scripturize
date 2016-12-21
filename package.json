@@ -1,4 +1,5 @@
 {
+  "scripts":{"build": "webpack", "watch": "webpack -w"},
   "devDependencies": {
     "babel-core": "^6.21.0",
     "babel-loader": "^6.2.10",

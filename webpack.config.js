@@ -3,9 +3,11 @@ const webpack = require('webpack');
 
 const base = __dirname
 
+const PROD = process.env.NODE_ENV === 'production'
+
 module.exports = {
-  devtool: 'cheap-module-source-map',
-  entry: [
+  devtool: PROD ? false : 'cheap-module-source-map',
+  entry: PROD ? path.join(base, 'src') : [
     'react-hot-loader/patch',
     'webpack-hot-middleware/client',
     path.join(base, 'src'),
@@ -19,6 +21,11 @@ module.exports = {
     new webpack.optimize.OccurenceOrderPlugin(),
     new webpack.HotModuleReplacementPlugin(),
     new webpack.NoErrorsPlugin(),
+    new webpack.DefinePlugin({
+      'process.env': {
+        'NODE_ENV': JSON.stringify(process.env.NODE_ENV),
+      }
+    })
   ],
   resolve: {
     alias: {

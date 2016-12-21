@@ -8,7 +8,20 @@ import {hashHistory} from 'react-router'
 export default class Browse extends Component {
   render() {
     return <div className={css(styles.container)}>
-      {this.props.pages.map(page => (
+      <div className={css(styles.scriptures)}>
+        {Object.keys(this.props.scriptures).map(
+          reference => (
+            <div
+              key={reference}
+              onClick={() => hashHistory.push('/' + reference)}
+              className={css(styles.scripture)}
+            >
+              {reference}
+            </div>
+          )
+        )}
+      </div>
+      {/*this.props.pages.map(page => (
         <button
           key={page.path}
           onClick={() => hashHistory.push('/' + page.path)}
@@ -16,7 +29,7 @@ export default class Browse extends Component {
         >
           {page.name}
         </button>
-      ))}
+      ))*/}
     </div>
   }
 }
@@ -24,7 +37,13 @@ export default class Browse extends Component {
 const styles = StyleSheet.create({
 
   container: {
-    flexDirection: 'row',
+    // flexDirection: 'row',
+  },
+  scriptures: {
+    flexDirection: 'column',
+  },
+  scripture: {
+    padding: '10px 20px',
   },
 
   button: {
@@ -39,4 +58,3 @@ const styles = StyleSheet.create({
     border: 'none',
   },
 })
-

@@ -13,7 +13,7 @@ ReactDOM.render(
   rootEl
 );
 
-if (module.hot) {
+if (process.env.NODE_ENV !== 'production' && module.hot) {
   (module.hot: any).accept('./App', () => {
     // If you use Webpack 2 in ES modules mode, you can
     // use <App /> here rather than require() a <NextApp />.
