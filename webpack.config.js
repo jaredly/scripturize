@@ -43,6 +43,12 @@ module.exports = {
         // path.join(base, 'treed'),
         // path.join(base, 'formative'),
       ],
+    }, {
+      test: /\.json$/,
+      loaders: ['json'],
+      include: [
+        path.join(base, 'src'),
+      ],
     }, /*{
       test: /\.less$/,
       loader: 'style-loader!css-loader!less-loader',

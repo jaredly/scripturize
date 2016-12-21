@@ -8,7 +8,7 @@ export default class WordBoard extends Component {
   }
 
   shouldComponentUpdate(nextProps) {
-    return false
+    return nextProps.matrix !== this.props.matrix
   }
 
   render() {
@@ -68,4 +68,3 @@ const styles = StyleSheet.create({
     position: 'absolute',
   },
 })
-

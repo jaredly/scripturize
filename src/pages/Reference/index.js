@@ -12,7 +12,7 @@ const games = [
 
 export default class ReferencePage extends Component {
   render() {
-    const {scriptureText, scriptureReference} = this.props
+    const {scriptureText, scriptureReference, scores} = this.props
     return <div className={css(styles.container)}>
       <div className={css(styles.preview)}>
         {scriptureText}
@@ -24,6 +24,14 @@ export default class ReferencePage extends Component {
           onClick={() => hashHistory.push(`/${scriptureReference}/${game.path}`)}
         >
           {game.title}
+          {scores[game.path] ?
+            <div className={css(styles.score)}>
+              {parseInt(scores[game.path][0].score / 1000)}s
+            </div> :
+            <div className={css(styles.noScore)}>
+              never played
+            </div>
+          }
         </button>
       ))}
     </div>
@@ -33,15 +41,30 @@ export default class ReferencePage extends Component {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    overflow: 'auto',
+  },
+
+  noScore: {
+    fontSize: '.5em',
+  },
+
+  score: {
+    marginLeft: 5,
+    fontSize: '.5em',
   },
 
   button: {
+    flexShrink: 0,
     backgroundColor: '#aef',
     marginTop: 5,
     border: 'none',
     padding: '10px 20px',
     cursor: 'pointer',
     fontSize: '2em',
+    flexDirection: 'row',
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
 
     ':hover': {
       backgroundColor: '#ccc',

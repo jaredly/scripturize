@@ -6,8 +6,10 @@ div {
     min-width: 0;
     box-sizing: border-box;
     align-items: stretch;
-    font-family: sans-serif;
-    font-weight: 200;
+}
+
+* {
+    flex-shrink: 0;
 }
 
 input {
@@ -17,6 +19,8 @@ input {
 }
 
 #root {
+    font-family: sans-serif;
+    font-weight: 200;
     position: fixed;
     top: 0;
     left: 0;

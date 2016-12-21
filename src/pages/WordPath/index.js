@@ -7,6 +7,7 @@ import WordBoard from './WordBoard'
 import WalkTiles from './WalkTiles'
 import Timer from './Timer'
 import PreviewText from './PreviewText'
+import Scores from './Scores'
 
 const WIDTH = Math.min(window.innerWidth, window.innerHeight)
 const HEIGHT = WIDTH
@@ -21,31 +22,45 @@ const slideTime = 200
 const minSlide = 100
 const SLIDE = true
 
+const GAME_ID = 'word-path'
+
+const initialState = scriptureText => {
+  const letters = justLetters(scriptureText)
+  const {matrix, path} = makeMap(letters)
+  return {
+    won: false,
+    showingScores: false,
+    text: letters,
+    start: Date.now(),
+    wrong: 0,
+    showWrong: false,
+    matrix,
+    path,
+    size: 30,
+    x: path[0][0],
+    y: path[0][1],
+    walked: [path[0]],
+    taken: {
+      [`${path[0][0]},${path[0][1]}`]: true,
+    },
+    dx: 0,
+    dy: 0,
+  }
+}
+
 export default class WordPath extends Component {
   constructor(props) {
     super()
 
-    const letters = justLetters(props.scriptureText)
-    const {matrix, path} = makeMap(letters)
-    this.state = {
-      won: false,
-      text: letters,
-      start: Date.now(),
-      wrong: 0,
-      showWrong: false,
-      matrix,
-      path,
-      size: 30,
-      x: path[0][0],
-      y: path[0][1],
-      walked: [path[0]],
-      taken: {
-        [`${path[0][0]},${path[0][1]}`]: true,
-      },
-      dx: 0,
-      dy: 0,
-    }
+    this.state = initialState(props.scriptureText)
     this.moving = false
+    this._touching = false
+  }
+
+  playAgain = () => {
+    this.setState(initialState(this.props.scriptureText))
+    this.moving = false
+    this._touching = false
   }
 
   componentDidMount() {
@@ -168,8 +183,16 @@ export default class WordPath extends Component {
         nwrong = 1
       }
     }
+    const won = nwrong === 0 && walked.length + 1 === this.state.path.length ? Date.now() : false
+    if (won) {
+      this.props.saveScore(GAME_ID, {
+        score: won - this.state.start,
+        date: won,
+      })
+    }
     this.setState({
-      won: nwrong === 0 && walked.length + 1 === this.state.path.length ? Date.now() : false,
+      won,
+      showingScores: won,
       wrong: nwrong,
       showWrong: nwrong > 2 ? true : this.state.showWrong,
       x: nx, y: ny,
@@ -241,6 +264,21 @@ export default class WordPath extends Component {
         walked={this.state.walked}
         matrix={this.state.matrix}
       />
+      {this.state.showingScores &&
+        <Scores
+          text={this.state.text}
+          scores={this.props.scores[GAME_ID] || []}
+          justNow={this.state.won}
+          close={() => this.setState({showingScores: false})}
+          playAgain={this.playAgain}
+        />}
+      {this.state.won &&
+        <button
+          onClick={this.playAgain}
+          className={css(styles.button)}
+        >
+          Play again
+        </button>}
     </div>
   }
 }
@@ -282,5 +320,14 @@ const styles = StyleSheet.create({
 
   item: {
     position: 'absolute',
+  },
+
+  button: {
+    backgroundColor: '#aef',
+    padding: '10px 20px',
+    border: 'none',
+    cursor: 'pointer',
+    alignSelf: 'stretch',
+    marginTop: 5,
   },
 })

@@ -15,11 +15,7 @@ const pages = [
   {name: 'WordPath', path: 'word-path'},
 ]
 
-const scriptures = {
-  "Moses 1:39": "For behold, this is my work and my glory—to bring to pass the immortality and eternal life of man.",
-  "Moses 7:18": "And the Lord called his people Zion, because they were of one heart and one mind, and dwelt in righteousness; and there was no poor among them.",
-  "2 Nephi 9:51": "Wherefore, do not spend money for that which is of no worth, nor your labor for that which cannot satisfy. Hearken diligently unto me, and remember the words which I have spoken; and come unto the Holy One of Israel, and feast upon that which perisheth not, neither can be corrupted, and let your soul delight in fatness.",
-}
+const scriptures = require('./scripture-mastery.json')
 
 const title = (reference, secondRoute) => {
   if (!reference) return 'Scripturize'
@@ -29,15 +25,22 @@ const title = (reference, secondRoute) => {
   return reference
 }
 
-const scoresKey = 'memorize:scores'
-const loadScores = () => {
+const tryLocalStorage = key => {
   try {
     return JSON.parse(localStorage[scoresKey])
   } catch (e) {
-    return {}
+    return null
   }
 }
 
+const currentScripturesKey = 'memorize:current-scriptures'
+const loadCurrentScriptures = () => tryLocalStorage(currentScripturesKey) || []
+const saveCurrentScriptures = scriptures => {
+  localStorage[currentScripturesKey] = JSON.stringify(scriptures)
+}
+
+const scoresKey = 'memorize:scores'
+const loadScores = () => tryLocalStorage(scoresKey) || {}
 const saveScores = scores => {
   localStorage[scoresKey] = JSON.stringify(scores)
 }
@@ -49,7 +52,20 @@ class Wrapper extends Component {
     super()
     this.state = {
       scores: loadScores(),
+      scriptures: loadCurrentScriptures(),
     }
+  }
+
+  clearScores = (reference, game) => {
+    const scores = {
+      ...this.state.scores,
+      [reference]: {
+        ...this.state.scores[reference],
+        [game]: null,
+      }
+    }
+    saveScores(scores)
+    this.setState({scores})
   }
 
   saveScore = (reference, game, score) => {
@@ -57,13 +73,34 @@ class Wrapper extends Component {
       ...this.state.scores,
       [reference]: {
         ...this.state.scores[reference],
-        [game]: (this.state.scores[reference][game] || []).concat([
+        [game]: ((this.state.scores[reference] || {})[game] || []).concat([
           score
         ]).sort(sortScores)
       }
     }
     saveScores(scores)
     this.setState({scores})
+  }
+
+  addScripture = reference => {
+    const scriptures = this.state.scriptures.concat([reference]).sort()
+
+    saveCurrentScriptures(scriptures)
+    this.setState({scriptures})
+  }
+
+  removeScripture = reference => {
+    const scriptures = this.state.scriptures.filter(r => r !== reference)
+    saveCurrentScriptures(scriptures)
+    this.setState({scriptures})
+  }
+
+  onBack = () => {
+    if (this.props.routes[2].path) {
+      hashHistory.push(`/${this.props.params.reference}`)
+    } else {
+      hashHistory.push('/')
+    }
   }
 
   render() {
@@ -74,9 +111,9 @@ class Wrapper extends Component {
         <div className={css(styles.side)}>
           {routes.length > 1 && routes[1].path && <button
             className={css(styles.homeButton)}
-            onClick={() => hashHistory.push('/')}
+            onClick={this.onBack}
           >
-            home
+            back
           </button>}
         </div>
         <div className={css(styles.title)}>
@@ -86,16 +123,22 @@ class Wrapper extends Component {
       </div>
       {React.cloneElement(children, {
         pages,
-        scriptures,
         scores,
+        saveScore: this.saveScore,
+        clearScores: this.clearScores,
+        addScripture: this.addScripture,
+        removeScripture: this.removeScripture,
       })}
     </div>
   }
 }
 
-const ReferenceWrapper = ({children, params}) => React.cloneElement(children, {
+const ReferenceWrapper = ({children, params, scores, saveScore}) => React.cloneElement(children, {
   scriptureText: scriptures[params.reference],
   scriptureReference: params.reference,
+  scores: scores[params.reference] || {},
+  saveScore: (game, score) => saveScore(params.reference, game, score),
+  clearScores: game => clearScores(params.reference, game),
 })
 
 export default class App extends Component {
@@ -124,6 +167,8 @@ const styles = StyleSheet.create({
 
   side: {
     width: 100,
+    flexDirection: 'row',
+    alignSelf: 'stretch',
   },
 
   title: {
@@ -134,14 +179,16 @@ const styles = StyleSheet.create({
 
   top: {
     flexDirection: 'row',
+    alignItems: 'center',
   },
 
   homeButton: {
-    borderRadius: 5,
-    boxShadow: '0 0 3px #88a',
-    margin: 5,
+    padding: '5px 20px',
+    color: '#00c9fb',
+    fontSize: 14,
+    fontWeight: 'bold',
     backgroundColor: 'white',
     border: 'none',
-    alignSelf: 'flex-start',
+    alignSelf: 'stretch',
   },
 });
