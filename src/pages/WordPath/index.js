@@ -6,13 +6,10 @@ import makeMap from './makeMap'
 import WordBoard from './WordBoard'
 import WalkTiles from './WalkTiles'
 import Timer from './Timer'
+import PreviewText from './PreviewText'
 
-window.makeMap = makeMap
-
-/*
-const scriptureText = "Wherefore, do not spend money for that which is of no worth"
- + ", nor your labor for that which cannot satisfy. Hearken diligently unto me, and remember the words which I have spoken; and come unto the Holy One of Israel, and feast upon that which perisheth not, neither can be corrupted, and let your soul delight in fatness."
- */
+const WIDTH = Math.min(window.innerWidth, window.innerHeight)
+const HEIGHT = WIDTH
 
 const justLetters = text => text
   .toLowerCase()
@@ -186,28 +183,13 @@ export default class WordPath extends Component {
 
   render() {
     const {x, y, matrix, dx, dy, walked, wrong} = this.state
-    const width = Math.min(window.innerWidth, window.innerHeight)
-    const height = width
+
+    const nwalked = walked.length
     const yn = 5
     const xn = 5
-    const size = width / yn
-    const ymargin = (yn - 1) / 2 * size
-    const xmargin = (xn - 1) / 2 * size
-    const cx = -x * size
-    const cy = -y * size
-    const tx = cx + xmargin
-    const ty = cy + ymargin
-    const tsize = size / 3
-    const nwalked = walked.length
-    const ux = Math.abs(dx) > Math.abs(dy)
-    const swipeMin = 5
-    const bigEnough = Math.abs(ux ? dx : dy) > swipeMin
-    const dd = ux ? dx : dy
-    const dless = Math.sqrt(dd > 0 ? dd - swipeMin : dd + swipeMin)
-    let text = ''
-    for (let i=0; i<nwalked; i++) {
-      text += matrix[walked[i][0]][walked[i][1]]
-    }
+    const {
+      bigEnough, ux, dless, tx, ty, size
+    } = calcPlacement(x, y, dx, dy, xn, yn)
 
     let transform
     if (this.state.won) {
@@ -234,7 +216,7 @@ export default class WordPath extends Component {
         start={this.state.start}
         end={this.state.won}
       />
-      <div className={css(styles.wordBoard)} style={{width, height}}>
+      <div className={css(styles.wordBoard)} style={{width: WIDTH, height: HEIGHT}}>
         <div
           style={{
             transition: bigEnough ? '' : `transform ${slideTime / 1000 * 1}s ease`,
@@ -254,11 +236,31 @@ export default class WordPath extends Component {
           />
         </div>
       </div>
-      <div className={css(styles.formed)}>
-        {text[0] + text.slice(1).toLowerCase()}
-      </div>
+      <PreviewText
+        walked={this.state.walked}
+        matrix={this.state.matrix}
+      />
     </div>
   }
+}
+
+const calcPlacement = (x, y, dx, dy, xn, yn) => {
+  const size = WIDTH / yn
+  const ymargin = (yn - 1) / 2 * size
+  const xmargin = (xn - 1) / 2 * size
+  const cx = -x * size
+  const cy = -y * size
+  // const tsize = size / 3
+  const ux = Math.abs(dx) > Math.abs(dy)
+  const swipeMin = 5
+  const dd = ux ? dx : dy
+
+  const tx = cx + xmargin
+  const ty = cy + ymargin
+  const bigEnough = Math.abs(ux ? dx : dy) > swipeMin
+  const dless = Math.sqrt(dd > 0 ? dd - swipeMin : dd + swipeMin)
+
+  return {bigEnough, ux, dless, tx, ty, size}
 }
 
 const styles = StyleSheet.create({
@@ -271,13 +273,6 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: 5,
     right: 10,
-  },
-
-  formed: {
-    padding: 10,
-    flex: 1,
-    overflow: 'auto',
-    lineHeight: 1.5,
   },
 
   wordBoard: {

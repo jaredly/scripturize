@@ -2,7 +2,6 @@
 import React, {Component} from 'react';
 import {css, StyleSheet} from 'aphrodite'
 
-
 export default class WalkTiles extends Component {
   shouldComponentUpdate(nextProps) {
     return nextProps.walked !== this.props.walked
@@ -48,7 +47,6 @@ const makeNextBlock = (pos, next, size, wrong) => {
   const dy = next[1] - pos[1]
   const width = dx === 0 ? walkThick : walkThin
   const height = dy === 0 ? walkThick : walkThin
-  // console.log(dx, dy, walkThin, walkThick, width, height)
   return <div
     style={{
       width: width,
