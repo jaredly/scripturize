@@ -16,18 +16,29 @@ const isCurrent = scores => {
   return false
 }
 
-const organizeScriptures = (currentScriptures, scores) => {
+const isMastered = (games, scores, scripture) => {
+  if (!scores) return false
+  const notMastered = Object.keys(games).some(game => {
+    if (!scores[game]) return true
+    return !games[game].isMastered(scripture, scores[game][0])
+  })
+  return !notMastered
+}
+
+const organizeScriptures = (games, currentScriptures, scriptures, scores) => {
   const current = []
-  // const mastered = []
+  const mastered = []
   const rest = []
   currentScriptures.forEach(reference => {
-    if (isCurrent(scores[reference])) {
+    if (isMastered(games, scores[reference], scriptures[reference])) {
+      mastered.push(reference)
+    } else if (isCurrent(scores[reference])) {
       current.push(reference)
     } else {
       rest.push(reference)
     }
   })
-  return {current, rest}
+  return {current, rest, mastered}
 }
 
 const renderReference = (reference) => {
@@ -41,8 +52,8 @@ const renderReference = (reference) => {
 }
 // TODO played # times
 
-const renderScriptures = (currentScriptures, scores) => {
-  const {current, rest} = organizeScriptures(currentScriptures, scores)
+const renderScriptures = (games, currentScriptures, scriptures, scores) => {
+  const {current, mastered, rest} = organizeScriptures(games, currentScriptures, scriptures, scores)
   return (
     <div className={css(styles.scriptures)}>
       <div className={css(styles.sectionHeader)}>
@@ -52,6 +63,16 @@ const renderScriptures = (currentScriptures, scores) => {
         {current.length ? current.map(reference => (
           renderReference(reference)
         )) : <div className={css(styles.scripture)}>No active scriptures</div>}
+      </div>
+      <div className={css(styles.sectionHeader)}>
+        Mastered
+      </div>
+      <div className={css(styles.section)}>
+        {mastered.length ? mastered.map(reference => (
+          renderReference(reference)
+        )) : <div className={css(styles.scripture)}>
+          No scriptures mastered. To master, you have to select keywords and chunks, and get a ★ on all mini-games.
+        </div>}
       </div>
       <div className={css(styles.sectionHeader)}>
         Inactive
@@ -74,7 +95,7 @@ export default class Browse extends Component {
   }
 
   render() {
-    const {currentScriptures, scriptures} = this.props
+    const {currentScriptures, scriptures, games, scores} = this.props
     if (this.state.adding) {
       const smap = {}
       currentScriptures.forEach(k => smap[k] = true)
@@ -106,7 +127,7 @@ export default class Browse extends Component {
       </div>
     }
     return <div className={css(styles.container)}>
-      {renderScriptures(currentScriptures, this.props.scores)}
+      {renderScriptures(games, currentScriptures, scriptures, scores)}
       <button
         onClick={() => this.setState({adding: true})}
         className={css(styles.addButton)}

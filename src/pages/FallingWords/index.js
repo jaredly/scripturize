@@ -5,13 +5,6 @@ import {css, StyleSheet} from 'aphrodite'
 import Timer from '../WordPath/Timer'
 import Scores from '../WordPath/Scores'
 
-const splitWords = text => text
-  // .toLowerCase()
-  .replace(/[^a-zA-Z]+/g, ' ').trim()
-  .split(/\s+/g)
-  // .replace(/[^a-zA-Z.;?!]+/g, ' ').trim()
-  // .replace(/[.;?!]\s+/g, n => n.trim())
-
 function betterShuffle(array) {
   const dest = []
   const idxs = array.map((_, i) => i)
@@ -31,10 +24,10 @@ function betterShuffle(array) {
 
 const GAME_ID = 'falling-words'
 
-const initialState = (scriptureText, difficulty) => {
-  const words = splitWords(scriptureText)
+const initialState = (words, difficulty) => {
   const ordered = betterShuffle(words.slice())
   return {
+    difficulty,
     times: [Date.now()],
     words,
     ordered,
@@ -83,7 +76,7 @@ export default class FallingWords extends Component {
 
   restart = (difficulty) => {
     clearInterval(this._time)
-    const state = initialState(this.props.scriptureText, difficulty)
+    const state = initialState(this.props.scripture.words, difficulty)
     this.setState(state)
     this._time = setInterval(this.addWord, state.addSpeed)
   }
@@ -106,6 +99,8 @@ export default class FallingWords extends Component {
       // lost!
       const now = Date.now()
       this.props.saveScore(GAME_ID, {
+        finished: false,
+        difficulty: this.state.difficulty,
         score: this.state.score - 4 * this.state.scoreMult,
         date: now,
       })
@@ -138,6 +133,8 @@ export default class FallingWords extends Component {
         const now = Date.now()
         this.props.saveScore(GAME_ID, {
           score: this.state.score + 2 * this.state.scoreMult,
+          finished: true,
+          difficulty: this.state.difficulty,
           date: now,
         })
         this.setState({
@@ -183,6 +180,11 @@ export default class FallingWords extends Component {
         </div>
       ))}
       </div>
+      <button
+        onClick={() => this.props.clearScores(GAME_ID)}
+      >
+        Clear scores
+      </button>
     </div>
   }
 
@@ -198,30 +200,30 @@ export default class FallingWords extends Component {
     const text = this.state.words.slice(0, this.state.gotten).join(' ')
 
     const divs = wordsOnScreen.map((wi, i) => (
-        <div key={wi}
-          className={css(styles.word)}
-          onTouchStart={this.onClick.bind(null, wi)}
-          onMouseDown={this.onClick.bind(null, wi)}
-          style={{
-            position: 'absolute',
-            top: 0,
-            left: 0,
-            opacity: this.state.done[wi] ? 0 : 1,
-            backgroundColor: wrong === wi ? 'red' : '#aef',
-            display: wi >= offsets.length ? 'none' : 'block',
-            transform: `translate(${offsets[wi] * width}px, ${
-              i === wordsOnScreen.length - 1 ?
-              -50 : height
-            }px)`,
-            transition: `
-            transform ${hangTime}s linear,
-            background-color 1s ease,
-            opacity .1s ease-out
-            `,
-          }}
-        >
-          {ordered[wi]}
-        </div>
+      <div key={wi}
+        className={css(styles.word)}
+        onTouchStart={this.onClick.bind(null, wi)}
+        onMouseDown={this.onClick.bind(null, wi)}
+        style={{
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          opacity: this.state.done[wi] ? 0 : 1,
+          backgroundColor: wrong === wi ? 'red' : '#aef',
+          display: wi >= offsets.length ? 'none' : 'block',
+          transform: `translate(${offsets[wi] * width}px, ${
+            i === wordsOnScreen.length - 1 ?
+            -50 : height
+          }px)`,
+          transition: `
+          transform ${hangTime}s linear,
+          background-color 1s ease,
+          opacity .1s ease-out
+          `,
+        }}
+      >
+        {ordered[wi]}
+      </div>
     ))
 
     return <div className={css(styles.container)}>

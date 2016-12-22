@@ -18,6 +18,8 @@ const games = {
     color: '#aef',
     sortScores: (a, b) => a.score - b.score,
     formatScore: score => `${parseInt(score.score / 1000)}s`,
+    isMastered: (scripture, score) => scripture.letters.length / (score.score / 1000) >= 1.5,
+    masteredText: 'Get better than 1.5 letters per second',
   },
   'falling-words': {
     title: 'Falling words',
@@ -25,6 +27,8 @@ const games = {
     color: '#fea',
     sortScores: (a, b) => b.score - a.score,
     formatScore: score => score.score,
+    isMastered: (scripture, score) => score.difficulty === 'hard' && score.finished,
+    masteredText: 'Win on Hard',
   },
   // {title: 'Falling blocks', path: 'falling-blocks'},
   // {title: 'Key Words', path: 'key-words'},
@@ -32,10 +36,30 @@ const games = {
 
 const scriptureSections = require('./scripture-mastery.json')
 
+const splitWords = text => text
+  // .toLowerCase()
+  .replace(/[^a-zA-Z]+/g, ' ').trim()
+  .split(/\s+/g)
+  // .replace(/[^a-zA-Z.;?!]+/g, ' ').trim()
+  // .replace(/[.;?!]\s+/g, n => n.trim())
+
+const justLetters = text => text
+  .toLowerCase()
+  .toUpperCase()
+  .replace(/[^a-zA-Z.;?!]+/g, ' ').trim()
+  .replace(/[.;?!]\s+/g, n => n.trim())
+
+const preprocessScripture = (reference, text) => ({
+  reference,
+  text,
+  words: splitWords(text),
+  letters: justLetters(text),
+})
+
 const scriptures = {}
 Object.keys(scriptureSections).forEach(section => {
   for (let ref in scriptureSections[section]) {
-    scriptures[ref] = scriptureSections[section][ref]
+    scriptures[ref] = preprocessScripture(ref, scriptureSections[section][ref])
   }
 })
 
@@ -158,9 +182,8 @@ class Wrapper extends Component {
   }
 }
 
-const ReferenceWrapper = ({children, params, scores, saveScore, games}) => React.cloneElement(children, {
-  scriptureText: scriptures[params.reference],
-  scriptureReference: params.reference,
+const ReferenceWrapper = ({children, params, scores, saveScore, clearScores, games}) => React.cloneElement(children, {
+  scripture: scriptures[params.reference],
   scores: scores[params.reference] || {},
   games,
   saveScore: (game, score) => saveScore(params.reference, game, score),

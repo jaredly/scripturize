@@ -9,11 +9,13 @@ import TestWords from './TestWords'
 
 const verse = '2 ne 9:51'
 
+/*
 const scriptureText = "Wherefore, do not spend money for that which is of no worth, nor your labor for that which cannot satisfy. Hearken diligently unto me, and remember the words which I have spoken; and come unto the Holy One of Israel, and feast upon that which perisheth not, neither can be corrupted, and let your soul delight in fatness."
 
 const tokens = scriptureText.split(/\b/g)
 const words = tokens.filter((_, i) => i % 2 == 0)
 const seps = tokens.filter((_, i) => i % 2 == 1)
+*/
 
 const makeKey = key => 'chosen-words:' + key
 
@@ -64,5 +66,3 @@ const styles = StyleSheet.create({
     flex: 1,
   },
 })
-
-

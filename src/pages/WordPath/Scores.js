@@ -2,7 +2,7 @@
 import React, {Component} from 'react';
 import {css, StyleSheet} from 'aphrodite'
 
-
+  
 const Scores = ({scores, justNow, text, close}) => (
   <div className={css(styles.scores)}>
     <div style={{overflow: 'auto', flex: '1'}}>
@@ -28,7 +28,7 @@ const Scores = ({scores, justNow, text, close}) => (
       </table>
     </div>
     <div style={{alignItems: 'center'}}>
-      Get a ★ for completing in under {parseInt(text.length / 2)}s
+      Get a ★ for completing in under {parseInt(text.length / 1.5)}s
     </div>
     <button
       onClick={close}

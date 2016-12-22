@@ -12,20 +12,13 @@ import Scores from './Scores'
 const WIDTH = Math.min(window.innerWidth, window.innerHeight)
 const HEIGHT = WIDTH
 
-const justLetters = text => text
-  .toLowerCase()
-  .toUpperCase()
-  .replace(/[^a-zA-Z.;?!]+/g, ' ').trim()
-  .replace(/[.;?!]\s+/g, n => n.trim())
-
 const slideTime = 200
 const minSlide = 100
 const SLIDE = true
 
 const GAME_ID = 'word-path'
 
-const initialState = scriptureText => {
-  const letters = justLetters(scriptureText)
+const initialState = letters => {
   const {matrix, path} = makeMap(letters)
   return {
     won: false,
@@ -52,13 +45,13 @@ export default class WordPath extends Component {
   constructor(props) {
     super()
 
-    this.state = initialState(props.scriptureText)
+    this.state = initialState(props.scripture.letters)
     this.moving = false
     this._touching = false
   }
 
   playAgain = () => {
-    this.setState(initialState(this.props.scriptureText))
+    this.setState(initialState(this.props.scripture.letters))
     this.moving = false
     this._touching = false
   }
