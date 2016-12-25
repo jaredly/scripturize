@@ -3,11 +3,17 @@ import React, {Component} from 'react';
 import {css, StyleSheet} from 'aphrodite'
 
 export default class ChooseWords extends Component {
-  constructor() {
+  constructor(props) {
     super()
     this.state = {
-      selected: {},
+      selected: props.initial || {},
     }
+  }
+
+  canSubmit() {
+    const minWords = parseInt(this.props.words.length / 6)
+    const picked = Object.keys(this.state.selected).filter(k => this.state.selected[k]).length
+    return picked >= minWords
   }
 
   render() {
@@ -27,10 +33,17 @@ export default class ChooseWords extends Component {
           </div>
         ))}
       </div>
+      <div
+        className={css(styles.hintText)}
+      >
+        Choose at least {parseInt(words.length / 6)} key words.
+      </div>
       <button
         onClick={() => this.props.onChoose(this.state.selected)}
+        className={css(styles.button)}
+        disabled={!this.canSubmit()}
       >
-        Next
+        Done
       </button>
     </div>
   }
@@ -47,6 +60,7 @@ const styles = StyleSheet.create({
     color: '#777',
     fontSize: 24,
     padding: 10,
+    lineHeight: '1em',
     flexDirection: 'row',
     flexWrap: 'wrap',
     alignItems: 'flex-start',
@@ -69,5 +83,18 @@ const styles = StyleSheet.create({
     // backgroundColor: '#aaf',
     fontWeight: 'bold',
     color: 'black',
+  },
+
+  button: {
+    backgroundColor: '#aef',
+    padding: '10px 20px',
+    marginTop: 10,
+    border: 'none',
+    fontSize: '1.3em',
+    fontWeight: 200,
+  },
+
+  hintText: {
+    padding: '5px 10px',
   },
 })

@@ -4,6 +4,7 @@ import React, {Component} from 'react';
 import {css, StyleSheet} from 'aphrodite'
 
 import {hashHistory} from 'react-router'
+import Add from './Add'
 
 const isCurrent = scores => {
   const aMonthAgo = Date.now() - 1000 * 60 * 60 * 24 * 30
@@ -16,6 +17,13 @@ const isCurrent = scores => {
   return false
 }
 
+const masteredGames = (games, scores, scripture, keywords) => {
+  if (!scores) return 0
+  return Object.keys(games).filter(game => {
+    return scores[game] && games[game].isMastered(scripture, scores[game][0], keywords)
+  })
+}
+
 const isMastered = (games, scores, scripture) => {
   if (!scores) return false
   const notMastered = Object.keys(games).some(game => {
@@ -25,15 +33,17 @@ const isMastered = (games, scores, scripture) => {
   return !notMastered
 }
 
-const organizeScriptures = (games, currentScriptures, scriptures, scores) => {
+const organizeScriptures = (games, currentScriptures, scriptures, scores, keywords) => {
   const current = []
   const mastered = []
   const rest = []
+  const numGames = Object.keys(games).length
   currentScriptures.forEach(reference => {
-    if (isMastered(games, scores[reference], scriptures[reference])) {
+    const count = masteredGames(games, scores[reference], scriptures[reference], keywords[reference]).length
+    if (count === numGames) {
       mastered.push(reference)
     } else if (isCurrent(scores[reference])) {
-      current.push(reference)
+      current.push({reference, count})
     } else {
       rest.push(reference)
     }
@@ -41,19 +51,27 @@ const organizeScriptures = (games, currentScriptures, scriptures, scores) => {
   return {current, rest, mastered}
 }
 
-const renderReference = (reference) => {
+const renderReference = (reference, count=0) => {
+  const stars = []
+  for (let i=0; i<count; i++) {
+    stars.push(<div key={i} className={css(styles.star)}>★</div>)
+  }
   return <div
     key={reference}
     onClick={() => hashHistory.push('/' + reference)}
     className={css(styles.scripture)}
   >
-    {reference}
+    <div className={css(styles.referenceName)}>
+      {reference}
+    </div>
+    {stars}
   </div>
 }
 // TODO played # times
 
-const renderScriptures = (games, currentScriptures, scriptures, scores) => {
-  const {current, mastered, rest} = organizeScriptures(games, currentScriptures, scriptures, scores)
+const renderScriptures = (games, currentScriptures, scriptures, scores, keywords) => {
+  const {current, mastered, rest} = organizeScriptures(games, currentScriptures, scriptures, scores, keywords)
+  console.log(current)
   return (
     <div className={css(styles.scriptures)}>
       <div className={css(styles.sectionHeader)}>
@@ -61,7 +79,7 @@ const renderScriptures = (games, currentScriptures, scriptures, scores) => {
       </div>
       <div className={css(styles.section)}>
         {current.length ? current.map(reference => (
-          renderReference(reference)
+          renderReference(reference.reference, reference.count)
         )) : <div className={css(styles.scripture)}>No active scriptures</div>}
       </div>
       <div className={css(styles.sectionHeader)}>
@@ -71,7 +89,7 @@ const renderScriptures = (games, currentScriptures, scriptures, scores) => {
         {mastered.length ? mastered.map(reference => (
           renderReference(reference)
         )) : <div className={css(styles.scripture)}>
-          No scriptures mastered. To master, you have to select keywords and chunks, and get a ★ on all mini-games.
+          No scriptures mastered. To master, you have to select keywords, and get a ★ on all mini-games.
         </div>}
       </div>
       <div className={css(styles.sectionHeader)}>
@@ -95,39 +113,15 @@ export default class Browse extends Component {
   }
 
   render() {
-    const {currentScriptures, scriptures, games, scores} = this.props
+    const {currentScriptures, scriptures, games, scores, keywords} = this.props
     if (this.state.adding) {
-      const smap = {}
-      currentScriptures.forEach(k => smap[k] = true)
-      return <div className={css(styles.container)}>
-        <div className={css(styles.scriptures)}>
-          {Object.keys(scriptures).map(
-            reference => (
-              smap[reference] ?
-                null :
-                <div
-                  key={reference}
-                  className={css(styles.scripture)}
-                  onClick={() => this.props.addScripture(reference)}
-                >
-                  {reference}
-                  <div className={css(styles.scriptureText)}>
-                    {scriptures[reference]}
-                  </div>
-                </div>
-            )
-          )}
-        </div>
-        <button
-          onClick={() => this.setState({adding: false})}
-          className={css(styles.addButton)}
-        >
-          Done
-        </button>
-      </div>
+      return <Add
+        {...this.props}
+        onDone={() => this.setState({adding: false})}
+      />
     }
     return <div className={css(styles.container)}>
-      {renderScriptures(games, currentScriptures, scriptures, scores)}
+      {renderScriptures(games, currentScriptures, scriptures, scores, keywords)}
       <button
         onClick={() => this.setState({adding: true})}
         className={css(styles.addButton)}
@@ -150,8 +144,11 @@ const styles = StyleSheet.create({
     overflow: 'auto',
     WebkitOverflowScrolling: 'touch',
   },
+
   scripture: {
     padding: '10px 20px',
+    flexDirection: 'row',
+    alignItems: 'center',
   },
 
   sectionHeader: {
@@ -172,6 +169,15 @@ const styles = StyleSheet.create({
   scriptureText: {
     fontSize: '.9em',
     marginTop: 5,
+  },
+
+  referenceName: {
+    flex: 1,
+  },
+
+  star: {
+    fontSize: 12,
+    // paddingLeft: 10,
   },
 
   button: {

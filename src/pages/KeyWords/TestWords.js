@@ -2,6 +2,10 @@
 import React, {Component} from 'react';
 import {css, StyleSheet} from 'aphrodite'
 
+import {hashHistory} from 'react-router'
+
+import Timer from '../WordPath/Timer'
+
 const randSort = items => {
   const indices = {
   }
@@ -12,12 +16,15 @@ const randSort = items => {
   return items.slice().sort((a, b) => indices[b] - indices[a])
 }
 
+const GAME_ID = 'key-word-blanks'
+
 export default class PickWords extends Component {
   constructor(props) {
     super()
     this.state = {
       picked: {},
-      left: randSort(Object.keys(props.keyWords)),
+      left: randSort(Object.keys(props.keywords)),
+      start: Date.now(),
     }
   }
 
@@ -32,25 +39,50 @@ export default class PickWords extends Component {
     const left = this.state.left.slice()
     const word = left[i]
     left.splice(i, 1)
+    const picked = {...this.state.picked, [forI]: word}
+    if (left.length === 0) {
+      this.check(picked)
+    }
     this.setState({
-      picked: {...this.state.picked, [forI]: word},
+      picked: picked,
       left,
     })
   }
 
+  check(picked) {
+    const words = this.props.scripture.keyWords.words
+    const good = !Object.keys(picked).some(forI => {
+      return words[forI].toLowerCase() !== words[picked[forI]].toLowerCase()
+    })
+    if (!good) {
+      return
+    }
+    const won = Date.now()
+    this.props.saveScore(GAME_ID, {
+      score: won - this.state.start,
+      date: won,
+    })
+    hashHistory.push(`/${this.props.scripture.reference}`)
+  }
+
   render() {
-    const {words, seps, keyWords} = this.props
+    const {scripture: {keyWords: {words, seps}}, keywords} = this.props
     const {picked} = this.state
-    const nextPicked = Object.keys(keyWords).filter(k => !picked[k]).sort((a,b) => a - b)[0]
+    const nextPicked = Object.keys(keywords).filter(k => !picked[k]).sort((a,b) => a - b)[0]
     console.log(nextPicked)
-    return <div>
+    return <div className={css(styles.container)}>
+      <Timer
+        className={css(styles.timer)}
+        start={this.state.start}
+        end={false}
+      />
       <div className={css(styles.scripture)}>
         {words.map((word, i) => (
           <div
             key={i}
             className={css(styles.item)}
           >
-            {keyWords[i] ?
+            {keywords[i] ?
               (picked[i] ?
               <div
                 className={css(styles.picked)}
@@ -84,6 +116,17 @@ export default class PickWords extends Component {
 }
 
 const styles = StyleSheet.create({
+
+  container: {
+    flex: 1,
+    overflow: 'auto',
+  },
+
+  timer: {
+    position: 'absolute',
+    top: 5,
+    right: 10,
+  },
 
   item: {
     flexDirection: 'row',
@@ -143,4 +186,3 @@ const styles = StyleSheet.create({
     padding: '3px 5px',
   },
 })
-

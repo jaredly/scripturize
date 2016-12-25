@@ -10,20 +10,30 @@ import KeyWords from './pages/KeyWords'
 import WordPath from './pages/WordPath'
 import FallingWords from './pages/FallingWords'
 import ReferencePage from './pages/Reference'
+import TestWords from './pages/KeyWords/TestWords'
 
 const games = {
+  'key-word-blanks': {
+    title: 'Key Word Blanks',
+    color: '#afa',
+    needsKeywords: true,
+    sortScores: (a, b) => a.score - b.score,
+    formatScore: score => `${parseInt(score.score / 1000)}s`,
+    isMastered: (scripture, score, keywords) => keywords && (score.score / 1000) / Object.keys(keywords).length <= 1,
+    masteredText: 'Take less than 1 seconds per keyword',
+  },
+
   'word-path': {
     title: 'Word Path',
-    path: 'word-path',
     color: '#aef',
     sortScores: (a, b) => a.score - b.score,
     formatScore: score => `${parseInt(score.score / 1000)}s`,
     isMastered: (scripture, score) => scripture.letters.length / (score.score / 1000) >= 1.5,
     masteredText: 'Get better than 1.5 letters per second',
   },
+
   'falling-words': {
     title: 'Falling words',
-    path: 'falling-words',
     color: '#fea',
     sortScores: (a, b) => b.score - a.score,
     formatScore: score => score.score,
@@ -49,9 +59,18 @@ const justLetters = text => text
   .replace(/[^a-zA-Z.;?!]+/g, ' ').trim()
   .replace(/[.;?!]\s+/g, n => n.trim())
 
+const splitKeyWords = text => {
+  const tokens = text.trim().split(/\b/g)
+  return {
+    words: tokens.filter((_, i) => i % 2 == 0),
+    seps: tokens.filter((_, i) => i % 2 == 1),
+  }
+}
+
 const preprocessScripture = (reference, text) => ({
   reference,
   text,
+  keyWords: splitKeyWords(text),
   words: splitWords(text),
   letters: justLetters(text),
 })
@@ -93,6 +112,9 @@ const saveScores = scores => {
   localStorage[scoresKey] = JSON.stringify(scores)
 }
 
+const keywordsKey = 'memorize:keywords'
+const loadKeywords = () => tryLocalStorage(keywordsKey) || {}
+const saveKeywords = keywords => localStorage[keywordsKey] = JSON.stringify(keywords)
 
 class Wrapper extends Component {
   constructor() {
@@ -100,6 +122,7 @@ class Wrapper extends Component {
     this.state = {
       scores: loadScores(),
       currentScriptures: loadCurrentScriptures(),
+      keywords: loadKeywords(),
     }
   }
 
@@ -129,6 +152,15 @@ class Wrapper extends Component {
     this.setState({scores})
   }
 
+  saveKeywords = (reference, newKeywords) => {
+    const keywords = {
+      ...this.state.keywords,
+      [reference]: newKeywords,
+    }
+    saveKeywords(keywords)
+    this.setState({keywords})
+  }
+
   addScripture = reference => {
     const currentScriptures = this.state.currentScriptures.concat([reference]).sort()
 
@@ -152,7 +184,7 @@ class Wrapper extends Component {
 
   render() {
     const {children, routes, params} = this.props
-    const {scores, currentScriptures} = this.state
+    const {scores, currentScriptures, keywords} = this.state
     return <div className={css(styles.container)}>
       <div className={css(styles.top)}>
         <div className={css(styles.side)}>
@@ -171,23 +203,27 @@ class Wrapper extends Component {
       {React.cloneElement(children, {
         games,
         scores,
+        keywords,
         scriptures,
         currentScriptures,
         saveScore: this.saveScore,
         clearScores: this.clearScores,
         addScripture: this.addScripture,
         removeScripture: this.removeScripture,
+        saveKeywords: this.saveKeywords,
       })}
     </div>
   }
 }
 
-const ReferenceWrapper = ({children, params, scores, saveScore, clearScores, games}) => React.cloneElement(children, {
+const ReferenceWrapper = ({children, params, scores, keywords, saveScore, clearScores, saveKeywords, games}) => React.cloneElement(children, {
   scripture: scriptures[params.reference],
   scores: scores[params.reference] || {},
   games,
   saveScore: (game, score) => saveScore(params.reference, game, score),
   clearScores: game => clearScores(params.reference, game),
+  saveKeywords: keywords => saveKeywords(params.reference, keywords),
+  keywords: keywords[params.reference],
 })
 
 export default class App extends Component {
@@ -202,6 +238,7 @@ export default class App extends Component {
         <Route path=":reference" component={ReferenceWrapper}>
           <IndexRoute component={ReferencePage} />
           <Route path="key-words" component={KeyWords} />
+          <Route path="key-word-blanks" component={TestWords} />
           <Route path="word-path" component={WordPath} />
           <Route path="falling-words" component={FallingWords} />
         </Route>
