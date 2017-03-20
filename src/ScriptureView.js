@@ -49,11 +49,6 @@ export default class ScriptureView extends React.Component {
         }}>
           {scripture.reference}
         </Text>
-        <Words text={scripture.text} keywords={scripture.keywords || []} />
-        <Button
-          title={scripture.keywords ? "Change keywords": "Select keywords"}
-          onPress={() => this.setState({pickingKeywords: true})}
-        />
         {Object.keys(this.props.games).map(gid => (
           <TouchableOpacity key={gid} onPress={() => this.props.onStartGame(gid)}>
             <View
@@ -67,6 +62,11 @@ export default class ScriptureView extends React.Component {
             </View>
           </TouchableOpacity>
         ))}
+        <Words text={scripture.text} keywords={scripture.keywords || []} />
+        <Button
+          title={scripture.keywords ? "Change keywords": "Select keywords"}
+          onPress={() => this.setState({pickingKeywords: true})}
+        />
       </ScrollView>
     </View>
   }

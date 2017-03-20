@@ -58,7 +58,7 @@ export default class KeywordsPicker extends React.Component {
           {words.map((word, i) => (
             <TouchableOpacity
               key={i}
-              onPressIn={() => this.toggle(i)}
+              onPress={() => this.toggle(i)}
             >
               <Text
                 style={[{

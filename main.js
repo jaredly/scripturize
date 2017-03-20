@@ -10,6 +10,7 @@ import ScriptureView from './src/ScriptureView';
 import type {Data, Scripture, Tag} from './src/types'
 
 import SlideReveal from './src/SlideReveal'
+import WordScramble from './src/WordScramble'
 
 /*
 Games:
@@ -64,6 +65,7 @@ const initialData = (): Data => {
 
 const games = {
   SlideReveal,
+  WordScramble,
 }
 
 class Main extends React.Component {
@@ -72,6 +74,20 @@ class Main extends React.Component {
   constructor() {
     super()
     this.state = {scripture: null, game: null}
+  }
+
+  onAdd = ({nickname, tags, reference, text}: any) => {
+    const id = Math.random().toString(16).slice(2)
+    this.props.onUpdate(id, {
+      id,
+      tags,
+      nickname,
+      reference,
+      text,
+      keywords: null,
+      chunks: null,
+      scores: {},
+    })
   }
 
   render() {
@@ -102,6 +118,7 @@ class Main extends React.Component {
 
     return <ScriptureList
       onSelect={id => this.setState({scripture: id})}
+      onAdd={this.onAdd}
       scriptures={this.props.data.scriptures}
       tags={this.props.data.tags}
     />
