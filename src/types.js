@@ -28,7 +28,7 @@ export type Scripture = {
     // TODO maybe recycle scores that are over a month old or something, that aren't the all-time best
     [gameId: string]: Array<{
       date: number,
-      score: number,
+      // any other info that you want to store
     }>
   }
 }

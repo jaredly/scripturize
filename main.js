@@ -9,6 +9,8 @@ import ScriptureView from './src/ScriptureView';
 
 import type {Data, Scripture, Tag} from './src/types'
 
+import SlideReveal from './src/SlideReveal'
+
 /*
 Games:
 absorb
@@ -60,8 +62,12 @@ const initialData = (): Data => {
   }
 }
 
+const games = {
+  SlideReveal,
+}
+
 class Main extends React.Component {
-  props: {data: Data}
+  props: {data: Data, onUpdate: (string, any) => void}
   state: {scripture: ?string, game: ?string}
   constructor() {
     super()
@@ -69,15 +75,26 @@ class Main extends React.Component {
   }
 
   render() {
-    if (this.state.scripture) {
-      if (this.state.game) {
+    const {scripture, game} = this.state
+    if (scripture) {
+      if (game) {
+        const Game = games[game]
+        if (!Game) {
+          return <Text>No game {game} found</Text>
+        }
+        return <Game
+          scripture={this.props.data.scriptures[scripture]}  
+          onQuit={() => this.setState({game: null})}
+          onUpdate={update => this.props.onUpdate(scripture, update)}
+        />
         // return render game
       }
       return <ScriptureView
         onStartGame={game => this.setState({game})}
         onBack={() => this.setState({scripture: null})}
-        onUpdate={update => this.props.onUpdate(this.state.scripture, update)}
-        scripture={this.props.data.scriptures[this.state.scripture]}
+        onUpdate={update => this.props.onUpdate(scripture, update)}
+        games={games}
+        scripture={this.props.data.scriptures[scripture]}
         tags={this.props.data.tags}
       />
       // return render scripture overview
@@ -106,7 +123,7 @@ class App extends React.Component {
     AsyncStorage.getItem(KEY).then(res => {
       let data
       if (res) {
-        // try { data = JSON.parse(res) } catch (e) { }
+        try { data = JSON.parse(res) } catch (e) { }
       }
       if (!data) {
         data = initialData()

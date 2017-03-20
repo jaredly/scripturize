@@ -54,6 +54,19 @@ export default class ScriptureView extends React.Component {
           title={scripture.keywords ? "Change keywords": "Select keywords"}
           onPress={() => this.setState({pickingKeywords: true})}
         />
+        {Object.keys(this.props.games).map(gid => (
+          <TouchableOpacity key={gid} onPress={() => this.props.onStartGame(gid)}>
+            <View
+              style={{padding: 20,}}
+            >
+              <Text style={{
+                fontSize: 20,
+                fontWeight: '200',
+              }}>
+                  {gid}</Text>
+            </View>
+          </TouchableOpacity>
+        ))}
       </ScrollView>
     </View>
   }
@@ -71,6 +84,7 @@ const Words = ({text, keywords}) => {
   >
     {words.map((word, i) => (
       <Text
+        key={i}
         style={{
           fontSize: 20,
           fontWeight: keywords.indexOf(i) === -1 ? '200' : '600',
