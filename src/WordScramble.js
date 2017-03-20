@@ -159,7 +159,7 @@ export default class WordScramble extends React.Component {
   constructor({scripture}: any) {
     super()
     this.state = {
-      options: {
+      options: scripture.options.WordScramble || {
         bankSize: 5,
       },
       playing: false,
@@ -168,6 +168,12 @@ export default class WordScramble extends React.Component {
 
   onChangeOption(update: $Shape<Options>) {
     this.setState({ options: { ...this.state.options, ...update } })
+  }
+
+  onStart = () => {
+    const {scripture} = this.props
+    this.props.onUpdate({options: {...scripture.options, WordScramble: this.state.options}})
+    this.setState({playing: true})
   }
 
   render() {
@@ -188,12 +194,12 @@ export default class WordScramble extends React.Component {
               type: 'slider',
               label: 'Size of word bank (smaller is easier)',
               value: this.state.options.bankSize,
-              step: 3,
+              step: 1,
               minimumValue: 5,
-              maximumValue: 14,
+              maximumValue: 15,
               onChange: bankSize => this.onChangeOption({bankSize}),
             }]}
-            onStart={() => this.setState({playing: true})}
+            onStart={this.onStart}
           />
         }
     </View>

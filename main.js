@@ -55,6 +55,7 @@ const initialData = (): Data => {
         keywords: null,
         chunks: null,
         scores: {},
+        options: {},
       },
     },
     tags: {
@@ -142,13 +143,16 @@ class App extends React.Component {
 
   componentWillMount() {
     AsyncStorage.getItem(KEY).then(res => {
-      let data
+      let data: Data
       if (res) {
         try { data = JSON.parse(res) } catch (e) { }
       }
       if (!data) {
         data = initialData()
         save(data)
+      } else if (data) {
+        Object.keys(data.scriptures).forEach(s => data.scriptures[s].options
+          ? null : (data.scriptures[s].options = {}))
       }
       this.setState({data})
     }, err => console.error(err))

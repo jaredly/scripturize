@@ -24,6 +24,9 @@ export type Scripture = {
   text: string,
   keywords: ?Array<number>, // indices
   chunks: ?Array<string>,
+  options: {
+    [gameId: string]: any,
+  },
   scores: {
     // TODO maybe recycle scores that are over a month old or something, that aren't the all-time best
     [gameId: string]: Array<{

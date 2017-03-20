@@ -1,6 +1,7 @@
 // @flow
 import React from 'react';
 import { StyleSheet, Text, View, AsyncStorage,
+  TouchableWithoutFeedback,
   TouchableOpacity,
   ScrollView,
   Button,
@@ -12,6 +13,119 @@ import Header from './Header'
 import OptionsPicker from './Options'
 
 import type {Data, Scripture, Tag} from './types'
+
+class FastWord extends React.Component {
+  state: any
+  _un: *
+  constructor(props: *) {
+    super()
+    this.state = {
+      peek: false,
+      current: props.parent.current === props.i,
+    }
+  }
+
+  shouldComponentUpdate(nextProps, nextState) {
+    return nextProps.i !== this.props.i
+      || nextState !== this.state
+  }
+
+  componentWillMount() {
+    this._un = this.props.register(this.props.i, () => {
+      const current = this.props.i === this.props.parent.current
+      this.setState({
+        current,
+        peek: current && this.props.parent.peek,
+      })
+    })
+  }
+
+  componentWillUnmount() {
+    this._un()
+  }
+
+  render() {
+    const {peek, current} = this.state
+    const {revealed, word, onTap} = this.props
+    return <TouchableWithoutFeedback
+      onPress={onTap}
+    >
+    <View>
+    <Text
+      style={{
+        backgroundColor: current ? '#fcc' : '#fee',
+        padding: 3,
+        margin: 2,
+        color: (revealed || (current && peek)) ? 'black' : 'transparent',
+        fontSize: 25,
+        fontWeight: '200',
+      }}
+    >
+      {word}
+    </Text>
+    </View>
+    </TouchableWithoutFeedback>
+  }
+}
+
+class FastWordShower extends React.Component {
+  parent: *
+  listeners: any
+  constructor() {
+    super()
+    this.parent = {
+      current: 0,
+      peek: false,
+    }
+    this.listeners = {}
+  }
+
+  register = (i, fn) => {
+    this.listeners[i] = fn
+    return () => this.listeners[i] = null
+  }
+
+  componentWillReceiveProps(nextProps) {
+    if (nextProps.current !== this.props.current || nextProps.peek !== this.props.peek) {
+      this.parent.current = nextProps.current
+      this.parent.peek = nextProps.peek
+      if (this.listeners[nextProps.current]) {
+        this.listeners[nextProps.current]()
+      }
+      if (nextProps.current !== this.props.current) {
+        this.listeners[this.props.current]()
+      }
+    }
+  }
+
+  render() {
+    const {words, revealed} = this.props
+    return <ScrollView
+      style={{flex: 1}}
+    >
+      <View
+        style={{
+          flexWrap: 'wrap',
+          flexDirection: 'row',
+          alignItems: 'flex-start',
+          marginTop: 10,
+        }}
+      >
+        {words.map((word, i) => (
+          <FastWord
+            i={i}
+            key={i}
+            word={word}
+            parent={this.parent}
+            revealed={revealed[i]}
+            register={this.register}
+            onTap={() => this.props.setIndex(i)}
+          />
+        ))}
+      </View>
+    </ScrollView>
+  }
+}
 
 const getInitialRevealed = (words, showKeywords, keywords) => {
   return showKeywords
@@ -28,6 +142,7 @@ class Game extends React.Component {
     auto: boolean,
     peek: boolean,
   }
+  _int: *
 
   constructor({scripture: {text, keywords}, options: {showKeywords}}) {
     super()
@@ -51,21 +166,25 @@ class Game extends React.Component {
     }
   }
 
-  show = () => {
-    this.setState({
-      index: this.state.index + 1,
-      revealed: this.state.revealed.map((m, i) => i === this.state.index ? true : m)
-    })
-  }
-
   auto = () => {
-    let int = setInterval(() => {
+    if (this.state.auto) {
+      this.setState({auto: false})
+      clearInterval(this._int)
+      return
+    }
+    this.setState({auto: true})
+    this._int = setInterval(() => {
       if (this.state.done || this.state.index >= this.state.words.length) {
-        clearInterval(int)
+        clearInterval(this._int)
+        this.setState({ auto: false })
       } else {
-        this.show()
+        this.next()
       }
     }, 500)
+  }
+
+  componentWillUnmount() {
+    clearInterval(this._int)
   }
 
   render() {
@@ -73,39 +192,19 @@ class Game extends React.Component {
     return <View
       style={{flex: 1}}
     >
-      <ScrollView
-        style={{flex: 1}}
-      >
-        <View
-          style={{
-            flexWrap: 'wrap',
-            flexDirection: 'row',
-            alignItems: 'flex-start',
-          }}
-        >
-          {words.map((word, i) => (
-            <Text
-              key={i}
-              style={{
-                backgroundColor: index === i ? '#fcc' : '#fee',
-                padding: 3,
-                margin: 2,
-                color: (revealed[i] || (index === i && peek)) ? 'black' : 'transparent',
-                fontSize: 25,
-                fontWeight: '200',
-              }}
-            >
-              {word}
-            </Text>
-          ))}
-        </View>
-      </ScrollView>
+      <FastWordShower
+        words={words}
+        revealed={revealed}
+        peek={peek || auto}
+        current={index}
+        setIndex={index => this.setState({index})}
+      />
       <View style={{
         flexDirection: 'row',
         alignSelf: 'stretch',
       }}>
         <MButton
-          text="Auto"
+          text={auto ? 'Stop' : 'Auto'}
           onPress={this.auto}
           style={{flex: 1}}
         />
@@ -140,7 +239,7 @@ export default class SlideReveal extends React.Component {
   constructor({scripture}: any) {
     super()
     this.state = {
-      options: {
+      options: scripture.options.SlideReveal || {
         showKeywords: !!scripture.keywords,
       },
       playing: false,
@@ -149,6 +248,12 @@ export default class SlideReveal extends React.Component {
 
   onChange(update: any) {
     this.setState({ options: { ...this.state.options, ...update } })
+  }
+
+  onStart = () => {
+    const {scripture} = this.props
+    this.props.onUpdate({options: {...scripture.options, SlideReveal: this.state.options}})
+    this.setState({playing: true})
   }
 
   render() {
@@ -171,7 +276,7 @@ export default class SlideReveal extends React.Component {
               type: 'switch',
               onChange: showKeywords => this.onChange({showKeywords}),
             }]}
-            onStart={() => this.setState({playing: true})}
+            onStart={this.onStart}
           />
         }
     </View>
