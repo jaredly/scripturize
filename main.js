@@ -12,7 +12,11 @@ import type {Data, Scripture, Tag} from './src/types'
 import SlideReveal from './src/SlideReveal'
 import WordScramble from './src/WordScramble'
 
+import {tagColors} from './src/styles'
+
 /*
+I want a button that is "strengthen", where it gives you a random verse & a random game
+
 Games:
 absorb
 - record yourself saying it
@@ -22,10 +26,12 @@ absorb
 - pick keywords
 
 memorize
+- word scramble
+- snake w/ words
+  - easy would be an absorb one
 - word path
 - flappy verse
 - falling words probably
-- snake w/ words
 
 ^ show "best today", "best this week", and "best all time"
 
@@ -36,8 +42,6 @@ recall
 */
 
 const KEY = 'scripturize'
-
-const tagColors = ['#fbb4ae', '#b3cde3', '#ccebc5', '#decbe4', '#fed9a6', '#ffffcc', '#e5d8bd', '#fddaec', '#f2f2f2']
 
 const initialData = (): Data => {
   return {

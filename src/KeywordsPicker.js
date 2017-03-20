@@ -8,6 +8,7 @@ import { StyleSheet, Text, View, AsyncStorage,
 import { Ionicons } from '@expo/vector-icons'
 import wordSplit from './wordSplit'
 import Header from './Header'
+import {buttonColor} from './styles'
 
 import type {Data, Scripture, Tag} from './types'
 
@@ -62,7 +63,8 @@ export default class KeywordsPicker extends React.Component {
             >
               <Text
                 style={[{
-                  padding: 10,
+                  paddingVertical: 10,
+                  paddingHorizontal: 5,
                   fontWeight: '200',
                   fontSize: 25,
                 }, keywords.indexOf(i) !== -1 && {
@@ -80,7 +82,7 @@ export default class KeywordsPicker extends React.Component {
       >
       <View
         style={{
-          backgroundColor: '#841584',
+          backgroundColor: buttonColor,
           padding: 15,
           alignItems: 'center',
         }}

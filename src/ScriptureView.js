@@ -9,6 +9,7 @@ import { Ionicons } from '@expo/vector-icons'
 import wordSplit from './wordSplit'
 import Header from './Header'
 import KeywordsPicker from './KeywordsPicker'
+import {buttonColor, tagColors} from './styles'
 
 import type {Data, Scripture, Tag} from './types'
 
@@ -49,10 +50,13 @@ export default class ScriptureView extends React.Component {
         }}>
           {scripture.reference}
         </Text>
-        {Object.keys(this.props.games).map(gid => (
+        {Object.keys(this.props.games).map((gid, i) => (
           <TouchableOpacity key={gid} onPress={() => this.props.onStartGame(gid)}>
             <View
-              style={{padding: 20,}}
+              style={{
+                padding: 20,
+                backgroundColor: tagColors[i],
+              }}
             >
               <Text style={{
                 fontSize: 20,
@@ -62,11 +66,12 @@ export default class ScriptureView extends React.Component {
             </View>
           </TouchableOpacity>
         ))}
-        <Words text={scripture.text} keywords={scripture.keywords || []} />
+        <View style={{ height: 10, }} />
         <Button
           title={scripture.keywords ? "Change keywords": "Select keywords"}
           onPress={() => this.setState({pickingKeywords: true})}
         />
+        <Words text={scripture.text} keywords={scripture.keywords || []} />
       </ScrollView>
     </View>
   }

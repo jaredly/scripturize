@@ -10,10 +10,11 @@ import { StyleSheet, Text, View, AsyncStorage,
 import { Ionicons } from '@expo/vector-icons'
 import wordSplit from './wordSplit'
 import Header from './Header'
+import OptionsPicker from './Options'
 
 import type {Data, Scripture, Tag} from './types'
 
-const OptionsPicker = ({scripture, options, onChange, onStart}) => (
+const _OptionsPicker = ({scripture, options, onChange, onStart}) => (
   <View style={{
     flex: 1,
   }}>
@@ -186,10 +187,17 @@ class Game extends React.Component {
   }
 }
 
+type Options = {
+  bankSize: number,
+}
+
 export default class WordScramble extends React.Component {
   static description = 'Rearrange words'
   static gameType = 'memorize'
-  state: any
+  state: {
+    options: Options,
+    playing: boolean,
+  }
 
   constructor({scripture}: any) {
     super()
@@ -199,6 +207,10 @@ export default class WordScramble extends React.Component {
       },
       playing: false,
     }
+  }
+
+  onChangeOption(update: $Shape<Options>) {
+    this.setState({ options: { ...this.state.options, ...update } })
   }
 
   render() {
@@ -215,9 +227,15 @@ export default class WordScramble extends React.Component {
             options={this.state.options}
           />
         : <OptionsPicker
-            scripture={this.props.scripture}
-            options={this.state.options}
-            onChange={update => this.setState({options: {...this.state.options, ...update}})}
+            options={[{
+              type: 'slider',
+              label: 'Size of word bank (smaller is easier)',
+              value: this.state.options.bankSize,
+              step: 3,
+              minimumValue: 5,
+              maximumValue: 14,
+              onChange: bankSize => this.onChangeOption({bankSize}),
+            }]}
             onStart={() => this.setState({playing: true})}
           />
         }

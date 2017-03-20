@@ -10,6 +10,7 @@ import { StyleSheet, Text, View,
   KeyboardAvoidingView,
 } from 'react-native';
 
+import {buttonColor} from './styles'
 import Header from './Header'
 
 class AddScripture extends React.Component {
@@ -145,18 +146,19 @@ export default class ScriptureList extends React.Component {
         <TouchableHighlight
           onPress={() => this.setState({adding: true})}
         >
-        <View
-          style={{backgroundColor: '#fee'}}
-        >
-          <Text style={{
-            fontSize: 20,
-            textAlign: 'center',
-            fontWeight: '200',
-            padding: 20,
-          }}>
-            Add scripture
-          </Text>
-        </View>
+          <View
+            style={{backgroundColor: buttonColor}}
+          >
+            <Text style={{
+              fontSize: 20,
+              color: 'white',
+              textAlign: 'center',
+              fontWeight: '200',
+              padding: 20,
+            }}>
+              Add scripture
+            </Text>
+          </View>
         </TouchableHighlight>
       </View>
     );
