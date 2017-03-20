@@ -9,6 +9,7 @@ import { StyleSheet, Text, View, AsyncStorage,
   Switch,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons'
+import {buttonColor} from './styles'
 
 type OptionT = {
   type: 'switch',
@@ -39,9 +40,14 @@ const Option = (props) => {
       return <View
         style={{flexDirection: 'row', padding: 10, alignItems: 'center'}}
       >
-        <Text style={{fontSize: 20, flex: 1, marginRight: 10}}>
-          {option.label}
-        </Text>
+        <TouchableOpacity
+          onPress={() => option.onChange(!option.value)}
+          style={{flex: 1, marginRight: 10, flexDirection: 'row'}}
+        >
+          <Text style={{fontSize: 20, flex: 1}}>
+            {option.label}
+          </Text>
+        </TouchableOpacity>
         <Switch
           disabled={option.disabled}
           value={option.value}
@@ -50,7 +56,7 @@ const Option = (props) => {
       </View>
     case 'slider':
       return <View
-        style={{padding: 10, alignItems: 'center'}}
+        style={{padding: 10, alignItems: 'stretch'}}
       >
         <Text style={{fontSize: 20, flex: 1, marginRight: 10}}>
           {option.label}: <Text>{option.value}</Text>
@@ -85,10 +91,15 @@ const OptionsPicker = ({options, onStart}: {options: OptionT[], onStart: () => v
     <ScrollView
       style={{flex: 1}}
     >
-      {options.map(option => <Option option={option} />)}
+      {options.map((option, i) => <Option key={i} option={option} />)}
     </ScrollView>
     <TouchableOpacity onPress={onStart}>
-      <Text>
+      <Text style={{
+        backgroundColor: buttonColor,
+        color: 'white',
+        textAlign: 'center',
+        padding: 20,
+      }}>
         Start!
       </Text>
     </TouchableOpacity>

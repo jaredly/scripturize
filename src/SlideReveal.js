@@ -9,53 +9,15 @@ import { StyleSheet, Text, View, AsyncStorage,
 import { Ionicons } from '@expo/vector-icons'
 import wordSplit from './wordSplit'
 import Header from './Header'
+import OptionsPicker from './Options'
 
 import type {Data, Scripture, Tag} from './types'
-
-const OptionsPicker = ({scripture, options, onChange, onStart}) => (
-  <View style={{
-    flex: 1,
-  }}>
-  <ScrollView
-    style={{flex: 1}}
-  >
-    <View
-      style={{flexDirection: 'row', padding: 10, alignItems: 'center'}}
-    >
-      <Text style={{fontSize: 20, flex: 1}}>
-        Reveal keywords initially
-      </Text>
-      <Switch
-        disabled={!scripture.keywords}
-        value={options.showKeywords}
-        onValueChange={value => onChange({showKeywords: value})}
-      />
-    </View>
-    </ScrollView>
-    <MButton onPress={onStart} text='Start!' />
-  </View>
-)
 
 const getInitialRevealed = (words, showKeywords, keywords) => {
   return showKeywords
     ? words.map((_, i) => keywords.indexOf(i) !== -1)
     : words.map(() => false)
 }
-
-const MButton = ({onPress, text, style}) => (
-  <TouchableOpacity
-    onPress={onPress}
-    style={[{
-      padding: 10,
-      alignItems: 'center',
-    }, style]}
-  >
-    <Text style={{
-      color: 'blue',
-      fontSize: 20,
-    }}>{text}</Text>
-  </TouchableOpacity>
-)
 
 class Game extends React.Component {
   state: {
@@ -64,6 +26,7 @@ class Game extends React.Component {
     words: string[],
     revealed: boolean[],
     auto: boolean,
+    peek: boolean,
   }
 
   constructor({scripture: {text, keywords}, options: {showKeywords}}) {
@@ -72,6 +35,7 @@ class Game extends React.Component {
     this.state = {
       done: null,
       auto: false,
+      peek: false,
       index: 0,
       words,
       revealed: getInitialRevealed(words, showKeywords, keywords),
@@ -105,7 +69,7 @@ class Game extends React.Component {
   }
 
   render() {
-    const {words, index, auto, revealed} = this.state
+    const {words, index, auto, revealed, peek} = this.state
     return <View
       style={{flex: 1}}
     >
@@ -126,7 +90,7 @@ class Game extends React.Component {
                 backgroundColor: index === i ? '#fcc' : '#fee',
                 padding: 3,
                 margin: 2,
-                color: revealed[i] ? 'black' : 'transparent',
+                color: (revealed[i] || (index === i && peek)) ? 'black' : 'transparent',
                 fontSize: 25,
                 fontWeight: '200',
               }}
@@ -150,11 +114,20 @@ class Game extends React.Component {
           onPress={this.next}
           style={{flex: 1}}
         />
-        <MButton
-          text="Show"
-          onPress={this.show}
-          style={{flex: 1}}
-        />
+        <TouchableOpacity
+          onPressIn={() => this.setState({peek: true})}
+          onPressOut={() => this.setState({peek: false})}
+          style={[{
+            padding: 10,
+            alignItems: 'center',
+            flex: 1,
+          }]}
+        >
+          <Text style={{
+            color: 'blue',
+            fontSize: 20,
+          }}>Peek</Text>
+        </TouchableOpacity>
       </View>
     </View>
   }
@@ -174,6 +147,10 @@ export default class SlideReveal extends React.Component {
     }
   }
 
+  onChange(update: any) {
+    this.setState({ options: { ...this.state.options, ...update } })
+  }
+
   render() {
     return <View
       style={{flex: 1, marginTop: 20,}}
@@ -188,12 +165,30 @@ export default class SlideReveal extends React.Component {
             options={this.state.options}
           />
         : <OptionsPicker
-            scripture={this.props.scripture}
-            options={this.state.options}
-            onChange={update => this.setState({options: {...this.state.options, ...update}})}
+            options={[{
+              label: 'Show keywords',
+              value: this.state.options.showKeywords,
+              type: 'switch',
+              onChange: showKeywords => this.onChange({showKeywords}),
+            }]}
             onStart={() => this.setState({playing: true})}
           />
         }
     </View>
   }
 }
+
+const MButton = ({onPress, text, style}) => (
+  <TouchableOpacity
+    onPress={onPress}
+    style={[{
+      padding: 10,
+      alignItems: 'center',
+    }, style]}
+  >
+    <Text style={{
+      color: 'blue',
+      fontSize: 20,
+    }}>{text}</Text>
+  </TouchableOpacity>
+)

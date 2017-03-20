@@ -14,49 +14,6 @@ import OptionsPicker from './Options'
 
 import type {Data, Scripture, Tag} from './types'
 
-const _OptionsPicker = ({scripture, options, onChange, onStart}) => (
-  <View style={{
-    flex: 1,
-  }}>
-  <ScrollView
-    style={{flex: 1}}
-  >
-    <View
-      style={{flexDirection: 'column', padding: 10, alignItems: 'stretch'}}
-    >
-      <Text style={{fontSize: 20, flex: 1}}>
-        Size of word bank (smaller is easier): <Text>{options.bankSize}</Text>
-      </Text>
-      <Slider
-        value={options.bankSize}
-        step={3}
-        minimumValue={5}
-        maximumValue={14}
-        onValueChange={bankSize => onChange({bankSize})}
-      />
-    </View>
-    </ScrollView>
-    <MButton onPress={onStart} text='Start!' />
-  </View>
-)
-
-const MButton = ({onPress, text, style}) => (
-  <TouchableOpacity
-    onPress={onPress}
-    style={[{
-      padding: 10,
-      alignItems: 'center',
-    }, style]}
-  >
-    <Text style={{
-      color: 'blue',
-      fontSize: 20,
-    }}>{text}</Text>
-  </TouchableOpacity>
-)
-
-
-
 const shuffle = items => {
   const ix = items.map((_, i) => [Math.random(), i])
   ix.sort((a, b) => a[0] - b[0])
