@@ -83,10 +83,19 @@ type GameProps = {
   textStyle: any,
 }
 
+const directions = {
+  left: [-1, 0],
+  right: [1, 0],
+  up: [0, -1],
+  down: [0, 1],
+}
+
 class Game extends React.Component {
   props: GameProps
   state: {
     board: Tile[][],
+    snake: number[][],
+    direction: 'left' | 'up' | 'down' | 'right',
   }
   _int: *
 
@@ -117,19 +126,39 @@ class Game extends React.Component {
       snake,
       board,
       gotten: 0,
+      direction: 'right',
     }
   }
 
   componentWillMount() {
-    /*
     this._int = setInterval(() => {
-      this.setState({board: makeBoard(this.props.boardSize)})
-    }, 100)
-    */
+      this.tick()
+    }, 500)
   }
 
   componentWillUnmount() {
     clearInterval(this._int)
+  }
+
+  tick() {
+    const {snake, board, direction} = this.state
+    const [hx, hy] = snake[0]
+    const [dx, dy] = directions[direction]
+    let x = (hx + dx) % (board.length)
+    let y = (hy + dy) % (board.length)
+    if (x < 0) x = board.length - 1
+    if (y < 0) y = board.length - 1
+    if (board[y][x].type !== 'empty') {
+      // TODO handle
+    }
+    const [lx, ly] = snake[snake.length - 1]
+    board[ly][lx] = {type: 'empty'}
+    board[y][x] = {type: 'head'}
+    snake.slice(0, -1).forEach(([x, y]) => board[y][x] = {type: 'tail'})
+    this.setState({
+      board,
+      snake: [[x, y]].concat(snake.slice(0, -1)),
+    })
   }
 
   render() {
@@ -138,6 +167,10 @@ class Game extends React.Component {
     const scale = dim / boardSize
     return <View
     >
+      <View style={{
+        width: scale * boardSize,
+        height: scale * boardSize,
+      }}>
       {this.state.board.map((row, y) => (
         row.map((item, x) => {
           const pos = {
@@ -171,11 +204,58 @@ class Game extends React.Component {
           </View>
         })
       ))}
+      </View>
+      <View
+        style={{position: 'relative', alignItems: 'flex-start'}}
+      >
+        <IconButton
+          name="ios-arrow-forward"
+          onPress={() => this.setState({direction: 'right'})}
+          style={[styles.button, {
+            top: 70,
+            left: 140,
+          }]}
+        />
+        <IconButton
+          name="ios-arrow-back"
+          onPress={() => this.setState({direction: 'left'})}
+          style={[styles.button, {
+            top: 70,
+            left: 0,
+          }]}
+        />
+        <IconButton
+          name="ios-arrow-up"
+          onPress={() => this.setState({direction: 'up'})}
+          style={[styles.button, {
+            top: 0,
+            left: 70,
+          }]}
+        />
+        <IconButton
+          name="ios-arrow-down"
+          onPress={() => this.setState({direction: 'down'})}
+          style={[styles.button, {
+            top: 140,
+            left: 70,
+          }]}
+        />
+      </View>
     </View>
   }
 }
 
 const styles = StyleSheet.create({
+  button: {
+    position: 'absolute',
+    zIndex: 100,
+    width: 70,
+    height: 70,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#eee',
+  },
+
   tile: {
     alignItems: 'center',
     justifyContent: 'center',
@@ -200,6 +280,15 @@ const styles = StyleSheet.create({
     backgroundColor: '#aaf',
   },
 })
+
+const IconButton = ({name, onPress, style}) => (
+  <TouchableOpacity
+    onPress={onPress}
+    style={style}
+  >
+    <Ionicons name={name} size={50} />
+  </TouchableOpacity>
+)
 
 class Measurer extends React.Component {
   state: {size: ?{width: number, height: number}, words: string[], wordSizes: number[]}
