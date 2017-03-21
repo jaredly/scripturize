@@ -11,6 +11,7 @@ import type {Data, Scripture, Tag} from './src/types'
 
 import SlideReveal from './src/SlideReveal'
 import WordScramble from './src/WordScramble'
+import Snake from './src/Snake';
 
 import {tagColors} from './src/styles'
 
@@ -71,6 +72,7 @@ const initialData = (): Data => {
 const games = {
   SlideReveal,
   WordScramble,
+  Snake,
 }
 
 class Main extends React.Component {

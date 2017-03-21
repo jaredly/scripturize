@@ -48,6 +48,7 @@ class Game extends React.Component {
   }
 
   use = (index: number) => {
+    if (this.state.bankUsed[index]) return
     if (this.state.wordBank[index] !== this.state.words[this.state.gotten]) {
       return this.setState({wrong: this.state.wrong + 1})
     }
@@ -111,6 +112,7 @@ class Game extends React.Component {
         {wordBank.map((word, i) => (
           <TouchableOpacity
             key={i}
+            disabled={bankUsed[i]}
             onPress={() => this.use(i)}
           >
           <Text

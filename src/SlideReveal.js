@@ -180,7 +180,7 @@ class Game extends React.Component {
       } else {
         this.next()
       }
-    }, 500)
+    }, 1000 * (60 / this.props.options.autoSpeed))
   }
 
   componentWillUnmount() {
@@ -232,21 +232,30 @@ class Game extends React.Component {
   }
 }
 
+type Options = {
+  showKeywords: boolean,
+  autoSpeed: number,
+}
+
 export default class SlideReveal extends React.Component {
   static description = 'Reveal each word'
   static gameType = 'absorb'
-  state: any
+  state: {
+    options: Options,
+    playing: boolean,
+  }
   constructor({scripture}: any) {
     super()
     this.state = {
       options: scripture.options.SlideReveal || {
         showKeywords: !!scripture.keywords,
+        autoSpeed: 120,
       },
       playing: false,
     }
   }
 
-  onChange(update: any) {
+  onChange(update: $Shape<Options>) {
     this.setState({ options: { ...this.state.options, ...update } })
   }
 
@@ -275,6 +284,14 @@ export default class SlideReveal extends React.Component {
               value: this.state.options.showKeywords,
               type: 'switch',
               onChange: showKeywords => this.onChange({showKeywords}),
+            }, {
+              label: 'Speed of auto-reveal',
+              value: this.state.options.autoSpeed,
+              minimumValue: 100,
+              maximumValue: 200,
+              step: 10,
+              type: 'slider',
+              onChange: autoSpeed => this.onChange({autoSpeed}),
             }]}
             onStart={this.onStart}
           />
