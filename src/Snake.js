@@ -12,6 +12,7 @@ import { Ionicons } from '@expo/vector-icons'
 import wordSplit from './wordSplit'
 import Header from './Header'
 import OptionsPicker from './Options'
+import Measurer from './Measurer'
 
 import type {Data, Scripture, Tag} from './types'
 
@@ -484,40 +485,6 @@ const IconButton = ({name, onPress, style, onPressIn, onPressOut}) => (
   </TouchableOpacity>
 )
 
-class Measurer extends React.Component {
-  state: {size: ?{width: number, height: number}, wordSizes: number[]}
-  constructor(props) {
-    super()
-    this.state = {size: null, wordSizes: []}
-  }
-  render() {
-    if (this.state.size) {
-      // $FlowFixMe cmon, size is not null
-      return <Game {...this.props} {...this.state} />
-    }
-    return <View
-      style={{flex: 1, alignSelf: 'stretch', alignItems: 'center'}}
-      onLayout={evt => {
-        const size ={
-          width: evt.nativeEvent.layout.width,
-          height: evt.nativeEvent.layout.height,
-        }
-        setTimeout(() => this.setState({size}), 50)
-      }}
-    >
-      {this.props.words.map((word, i) => (
-        <Text
-          key={i}
-          onLayout={evt => this.state.wordSizes[i] = evt.nativeEvent.layout.width}
-          style={this.props.textStyle}
-        >
-          {word}
-        </Text>
-      ))}  
-    </View>
-  }
-}
-
 type Options = {
   wordsAtOnce: number,  
 }
@@ -567,6 +534,7 @@ export default class Snake extends React.Component {
       />
       {this.state.playing
         ? <Measurer
+            Game={Game}
             boardSize={this.state.boardSize}
             textStyle={{
               fontSize: 15,
