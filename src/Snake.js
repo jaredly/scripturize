@@ -213,7 +213,10 @@ class Game extends React.Component {
     switch (board[y][x].type) {
       case 'empty':break
       case 'head': // not gonna happen tho
-      case 'tail':return this.fail()
+      case 'tail':
+        const last = snake[snake.length - 1]
+        if (last[0] === x && last[1] === y) break
+        return this.fail()
       case 'word':
       case 'word-rest':
         const tile = board[y][x]
@@ -254,8 +257,8 @@ class Game extends React.Component {
     let nextTail = newTail == 0
       ? snake.slice(0, -1)
       : snake
-    // reset if you get to 20 long. TODO show some tada or something
-    if (nextTail.length > 20) {
+    // reset if you get to 30 long. TODO show some tada or something
+    if (nextTail.length > 30) {
       nextTail.slice(3).forEach(([x, y]) => board[y][x] = {type: 'empty'})
       nextTail = nextTail.slice(0, 3)
     }
@@ -337,116 +340,30 @@ class Game extends React.Component {
     let p1, p2
     const eyed = 5
     if (this.direction === 'left') {
-      p1 = [
-        cx - scale/2 + 9,
-        cy - eyed,
-      ]
-      p2 = [
-        cx - scale/2 + 9,
-        cy + eyed,
-      ]
+      p1 = [ cx - scale/2 + 9, cy - eyed, ]
+      p2 = [ cx - scale/2 + 9, cy + eyed, ]
     } else if (this.direction === 'right') {
-      p1 = [
-        cx + scale/2 - 9,
-        cy - eyed,
-      ]
-      p2 = [
-        cx + scale/2 - 9,
-        cy + eyed,
-      ]
+      p1 = [ cx + scale/2 - 9, cy - eyed, ]
+      p2 = [ cx + scale/2 - 9, cy + eyed, ]
     } else if (this.direction === 'up') {
-      p1 = [
-        cx - eyed,
-        cy - scale/2 + 9,
-      ]
-      p2 = [
-        cx + eyed,
-        cy - scale/2 + 9,
-      ]
+      p1 = [ cx - eyed, cy - scale/2 + 9, ]
+      p2 = [ cx + eyed, cy - scale/2 + 9, ]
     } else {
-      p1 = [
-        cx - eyed,
-        cy + scale/2 - 9,
-      ]
-      p2 = [
-        cx + eyed,
-        cy + scale/2 - 9,
-      ]
+      p1 = [ cx - eyed, cy + scale/2 - 9, ]
+      p2 = [ cx + eyed, cy + scale/2 - 9, ]
     }
     return <View>
       {this.renderEye(p1)}
       {this.renderEye(p2)}
-      </View>
-      /*
-    const [width, height] = this.direction === 'left' || this.direction === 'right'
-      ? [scale / 4, scale / 2] : [scale / 2, scale / 4]
-    const off = {
-      left: [.2, .25],
-      right: [.55, .25],
-      up: [.25, .2],
-      down: [.25, .55],
-    }[this.direction]
-
-    return <View style={{
-      backgroundColor: 'red',
-      top: y * scale + off[1] * scale,
-      left: x * scale + off[0] * scale,
-      width,
-      height,
-    }} />
-    */
-  }
-
-  renderBoardOld() {
-    const {size: {width, height}, boardSize, words} = this.props
-    const dim = Math.min(width, height)
-    const scale = dim / boardSize
-
-    return <View style={{
-      width: scale * boardSize,
-      height: scale * boardSize,
-    }}>
-    {this.state.board.map((row, y) => (
-      row.map((item, x) => {
-        const pos = {
-          left: x * scale,
-          top: y * scale,
-          width: scale,
-          height: scale,
-        }
-        const k = `${x}:${y}`
-        if (item.type === 'word-rest') return <View key={k} />
-        if (item.type === 'empty') {
-          return <View style={[styles.tile, pos]} key={k} />
-        }
-        if (item.type === 'head') {
-          return <View style={[styles.tile, pos]} key={k}>
-            <View style={styles.head} />
-          </View>
-        }
-        if (item.type === 'tail') {
-          return <View style={[styles.tile, pos]} key={k}>
-            <View style={styles.tail} />
-          </View>
-        }
-        return <View style={[styles.tile, pos, {
-          width: scale * item.spaces,
-          zIndex: 100,
-        }]} key={k}>
-          <Text style={this.props.textStyle}>
-            {words[item.index]}
-          </Text>
-        </View>
-      })
-    ))}
     </View>
   }
 
   render() {
     return <View
+      style={{flex: 1}}
     >
       {this.renderBoard()}
-      <View style={{flexDirection: 'row'}}>
+      <View style={{flexDirection: 'row', flex: 1}}>
         <DirectionButtons
           setDirection={this.setDirection}
           speedStart={this.speedStart}
@@ -458,6 +375,7 @@ class Game extends React.Component {
             {this.state.gotten} / {this.props.words.length}
           </Text>
           <Text>{this.state.errors} errors</Text>
+          <Text>{this.props.words.slice(Math.max(0, this.state.gotten - 2), this.state.gotten).join(' ')}</Text>
         </View>
       </View>
     </View>
@@ -475,37 +393,28 @@ const clearWord = (board, tile) => {
 const DirectionButtons = ({setDirection, size, speedStart, speedStop}) => (
   <View
     style={{
-      position: 'relative', alignItems: 'flex-start',
+      position: 'relative',
+      flexDirection: 'row',
+      alignSelf: 'stretch',
+      alignItems: 'center',
+      // flex: 1,
       width: size * 3,
-      height: size * 3,
+      // height: size * 3,
     }}
   >
-    <IconButton
-      name="ios-arrow-forward"
-      onPressIn={() => setDirection('right')}
-      style={[styles.button, {
-        top: size,
-        left: size * 2,
-        width: size,
-        height: size,
-      }]}
-    />
     <IconButton
       name="ios-arrow-back"
       onPressIn={() => setDirection('left')}
       style={[styles.button, {
-        top: size,
-        left: 0,
         width: size,
         height: size,
       }]}
     />
+    <View style={{justifyContent: 'space-between', alignSelf: 'stretch'}}>
     <IconButton
       name="ios-arrow-up"
       onPressIn={() => setDirection('up')}
       style={[styles.button, {
-        top: 0,
-        left: size,
         width: size,
         height: size,
       }]}
@@ -514,19 +423,15 @@ const DirectionButtons = ({setDirection, size, speedStart, speedStop}) => (
       name="ios-arrow-down"
       onPressIn={() => setDirection('down')}
       style={[styles.button, {
-        top: size * 2,
-        left: size,
         width: size,
         height: size,
       }]}
     />
+    </View>
     <IconButton
-      name="ios-arrow-down"
-      onPressIn={speedStart}
-      onPressOut={speedStop}
+      name="ios-arrow-forward"
+      onPressIn={() => setDirection('right')}
       style={[styles.button, {
-        top: size,
-        left: size,
         width: size,
         height: size,
       }]}
@@ -536,11 +441,10 @@ const DirectionButtons = ({setDirection, size, speedStart, speedStop}) => (
 
 const styles = StyleSheet.create({
   button: {
-    position: 'absolute',
-    zIndex: 100,
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: '#eee',
+    borderRadius: 15,
   },
 
   tile: {
