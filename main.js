@@ -96,6 +96,7 @@ class Main extends React.Component {
       keywords: null,
       chunks: null,
       scores: {},
+      options: {},
     })
   }
 

@@ -88,6 +88,7 @@ type GameProps = {
   options: {wordsAtOnce: number},
   boardSize: number,
   textStyle: any,
+  onFinish: (wrong: number) => void,
 }
 
 const directions = {
@@ -115,7 +116,11 @@ class Game extends React.Component {
   _int: *
   tickSpeed: number
 
-  constructor({words, wordSizes, size: {width, height}, scripture: {text, keywords}, options: {wordsAtOnce}, boardSize}: GameProps) {
+  constructor({
+    words, wordSizes, size: {width, height}, scripture: {text, keywords},
+    options: {wordsAtOnce},
+    boardSize
+  }: GameProps) {
     super()
 
     const x = boardSize / 2 | 0
@@ -249,6 +254,9 @@ class Game extends React.Component {
           Math.ceil((10 + this.props.wordSizes[newI]) / this.state.scale)
         )
         placedWords.push({x, y, i: newI, size})
+      } else if (this.state.gotten + 1 === this.props.words.length) {
+        this.props.onFinish(this.state.errors)
+        return
       }
       newTail += 1
       this.setState({
@@ -497,20 +505,19 @@ export default class Snake extends React.Component {
     playing: boolean,
     words: string[],
     boardSize: number,
+    finished: boolean,
   }
 
   constructor({scripture}: any) {
     super()
     const words = wordSplit(scripture.text, true)
-    // TODO maybe this is a waste?
-    const boardSize = 10 // Math.ceil(Math.sqrt(Math.min(25, Math.max(words.length, 10)) * 5))
+    const boardSize = 10
     this.state = {
       words,
       boardSize,
-      options: scripture.options.Snake || {
-        wordsAtOnce: 1,
-      },
+      options: scripture.options.Snake || {wordsAtOnce: 1},
       playing: false,
+      finished: false,
     }
   }
 
@@ -522,6 +529,10 @@ export default class Snake extends React.Component {
     const {scripture} = this.props
     this.props.onUpdate({options: {...scripture.options, Snake: this.state.options}})
     this.setState({playing: true})
+  }
+
+  onFinish = (errors: number) => {
+    this.setState({playing: false, finished: true})
   }
 
   render() {
@@ -540,6 +551,7 @@ export default class Snake extends React.Component {
               fontSize: 15,
               fontWeight: '200',
             }}
+            onFinish={this.onFinish}
             words={this.state.words}
             scripture={this.props.scripture}
             options={this.state.options}
