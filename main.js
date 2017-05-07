@@ -2,7 +2,7 @@
 // $FlowFixMe
 import Expo from 'expo';
 import React from 'react';
-import { StyleSheet, Text, View, AsyncStorage } from 'react-native';
+import { Alert, StyleSheet, Text, View, AsyncStorage } from 'react-native';
 
 import ScriptureList from './src/ScriptureList';
 import ScriptureView from './src/ScriptureView';
@@ -78,7 +78,7 @@ const games = {
 }
 
 class Main extends React.Component {
-  props: {data: Data, onUpdate: (string, any) => void}
+  props: {data: Data, onUpdate: (string, any) => void, onDelete: (string) => void}
   state: {scripture: ?string, game: ?string}
   constructor() {
     super()
@@ -98,6 +98,22 @@ class Main extends React.Component {
       scores: {},
       options: {},
     })
+  }
+
+  onRemove = (id: string) => {
+    const {nickname} = this.props.data.scriptures[id];
+    Alert.alert(
+      'Really delete ' + nickname,
+      'This cannot be undone',
+      [
+        {text: 'Just kidding', onPress: () => {}},
+        {text: 'Really delete', onPress: () => this.reallyRemove(id)},
+      ]
+    )
+  }
+
+  reallyRemove = (id: string) => {
+    this.props.onDelete(id);
   }
 
   render() {
@@ -129,6 +145,7 @@ class Main extends React.Component {
     return <ScriptureList
       onSelect={id => this.setState({scripture: id})}
       onAdd={this.onAdd}
+      onDelete={this.onRemove}
       scriptures={this.props.data.scriptures}
       tags={this.props.data.tags}
     />
@@ -179,11 +196,21 @@ class App extends React.Component {
     this.setState({data: newData})
   }
 
+  onRemove = (id: string) => {
+    const {data} = this.state
+    const scriptures = {...data.scriptures}
+    delete scriptures[id]
+    const newData = {...data, scriptures}
+    save(newData)
+    this.setState({data: newData})
+  }
+
   render() {
     return this.state.data
       ? <Main
         data={this.state.data}
         onUpdate={this.onUpdate}
+        onDelete={this.onRemove}
       />
       : <Text style={styles.loading}>Loading...</Text>
   }

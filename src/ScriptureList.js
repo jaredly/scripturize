@@ -127,6 +127,7 @@ export default class ScriptureList extends React.Component {
             onPress={() => this.props.onSelect(id)}
           >
             <View style={styles.scripture}>
+              <View style={styles.left}>
               <Text style={styles.nickname}>{scripture.nickname}</Text>
               <Text style={styles.reference}>{scripture.reference}</Text>
               {/* TODO a little indicator about progress? */}
@@ -139,6 +140,12 @@ export default class ScriptureList extends React.Component {
                   </View>
                 ))}
               </View>
+              </View>
+              <View style={{flex: 1}}/>
+              <TouchableHighlight onPress={() => this.props.onDelete(id)}
+                style={styles.right}>
+                <Text>&times;</Text>
+              </TouchableHighlight>
             </View>
           </TouchableHighlight>
         })}
@@ -177,6 +184,7 @@ const styles = StyleSheet.create({
   scripture: {
     paddingVertical: 10,
     paddingHorizontal: 20,
+    flexDirection: 'row',
   },
 
   nickname: {
@@ -187,6 +195,10 @@ const styles = StyleSheet.create({
   reference: {
     fontSize: 16,
     fontWeight: '200',
+  },
+
+  left: {
+    flexDirection: 'column',
   },
 
   tags: {
