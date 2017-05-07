@@ -2,21 +2,19 @@
 
 // not using these atm
 const nineDirections = [
-  [-1, -1], [0, -1], [1, -1],
-  [-1, 0],           [1, 0],
-  [-1, 1],  [0, 1],  [1, 1],
+  [-1, -1],
+  [0, -1],
+  [1, -1],
+  [-1, 0],
+  [1, 0],
+  [-1, 1],
+  [0, 1],
+  [1, 1],
 ]
 
-const directions = [
-          [0, -1],
-  [-1, 0],        [1, 0],
-          [0,  1],
-]
+const directions = [[0, -1], [-1, 0], [1, 0], [0, 1]]
 
-const diagonals = [
-  [-1, -1],        [1, -1],
-  [-1,  1],        [1,  1],
-]
+const diagonals = [[-1, -1], [1, -1], [-1, 1], [1, 1]]
 
 type LPath = [[number, number], ?LPath]
 
@@ -56,7 +54,7 @@ const allowedRandomLetter = (x, y, board) => {
 }
 
 const toMatrix = (board, llpath) => {
-  const path = [[0,0]]
+  const path = [[0, 0]]
   let minx = 0
   let miny = 0
   let maxx = 0

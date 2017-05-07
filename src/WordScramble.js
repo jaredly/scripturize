@@ -1,13 +1,17 @@
 // @flow
-import React from 'react';
-import { StyleSheet, Text, View, AsyncStorage,
+import React from 'react'
+import {
+  StyleSheet,
+  Text,
+  View,
+  AsyncStorage,
   TouchableOpacity,
   ScrollView,
   Button,
   Switch,
   Slider,
-} from 'react-native';
-import { Ionicons } from '@expo/vector-icons'
+} from 'react-native'
+import {Ionicons} from '@expo/vector-icons'
 import wordSplit from './wordSplit'
 import Header from './Header'
 import OptionsPicker from './Options'
@@ -27,7 +31,7 @@ const makeBank = (words: string[], start, size) => {
 
 class Game extends React.Component {
   state: {
-    wordBank: string[],   
+    wordBank: string[],
     bankUsed: boolean[],
     words: string[],
     gotten: number,
@@ -52,7 +56,7 @@ class Game extends React.Component {
     if (this.state.wordBank[index] !== this.state.words[this.state.gotten]) {
       return this.setState({wrong: this.state.wrong + 1})
     }
-    const bankUsed = this.state.bankUsed.map((a, i) => i === index ? true : a)
+    const bankUsed = this.state.bankUsed.map((a, i) => (i === index ? true : a))
     if (!bankUsed.some(x => !x)) {
       this.nextBank()
     } else {
@@ -73,76 +77,74 @@ class Game extends React.Component {
 
   render() {
     const {words, gotten, wrong, wordBank, bankUsed} = this.state
-    return <View
-      style={{flex: 1}}
-    >
-      <ScrollView
-        style={{flex: 1}}
-      >
+    return (
+      <View style={{flex: 1}}>
+        <ScrollView style={{flex: 1}}>
+          <View
+            style={{
+              paddingHorizontal: 10,
+              flexWrap: 'wrap',
+              flexDirection: 'row',
+              alignItems: 'flex-start',
+            }}
+          >
+            {words.slice(0, gotten).map((word, i) => (
+              <Text
+                key={i}
+                style={{
+                  padding: 3,
+                  margin: 0,
+                  fontSize: 20,
+                  fontWeight: '200',
+                }}
+              >
+                {word}
+              </Text>
+            ))}
+          </View>
+        </ScrollView>
         <View
           style={{
             paddingHorizontal: 10,
-            flexWrap: 'wrap',
             flexDirection: 'row',
+            flexWrap: 'wrap',
             alignItems: 'flex-start',
+            alignSelf: 'stretch',
           }}
         >
-          {words.slice(0, gotten).map((word, i) => (
-            <Text
+          {wordBank.map((word, i) => (
+            <TouchableOpacity
               key={i}
-              style={{
-                padding: 3,
-                margin: 0,
-                fontSize: 20,
-                fontWeight: '200',
-              }}
+              disabled={bankUsed[i]}
+              onPress={() => this.use(i)}
             >
-              {word}
-            </Text>
+              <Text
+                style={{
+                  padding: 5,
+                  paddingHorizontal: 10,
+                  margin: 2,
+                  fontSize: 25,
+                  fontWeight: '200',
+                  backgroundColor: bankUsed[i] ? '#ccc' : '#fee',
+                  color: bankUsed[i] ? 'transparent' : 'black',
+                }}
+              >
+                {word}
+              </Text>
+            </TouchableOpacity>
           ))}
         </View>
-      </ScrollView>
-      <View style={{
-        paddingHorizontal: 10,
-        flexDirection: 'row',
-        flexWrap: 'wrap',
-        alignItems: 'flex-start',
-        alignSelf: 'stretch',
-      }}>
-        {wordBank.map((word, i) => (
-          <TouchableOpacity
-            key={i}
-            disabled={bankUsed[i]}
-            onPress={() => this.use(i)}
-          >
-          <Text
-            style={{
-              padding: 5,
-              paddingHorizontal: 10,
-              margin: 2,
-              fontSize: 25,
-              fontWeight: '200',
-              backgroundColor: bankUsed[i] ? '#ccc' : '#fee',
-              color: bankUsed[i] ? 'transparent' : 'black',
-            }}
-          >
-            {word}
+        <View style={{padding: 10, flexDirection: 'row'}}>
+          <Text style={{fontSize: 20, textAlign: 'center', fontWeight: '200'}}>
+            {wrong} wrong.
           </Text>
-          </TouchableOpacity>
-        ))}
+          <View style={{flex: 1}} />
+          <Text style={{fontSize: 20, textAlign: 'center', fontWeight: '200'}}>
+            {gotten}/{words.length}
+          </Text>
+        </View>
       </View>
-      <View
-        style={{padding: 10, flexDirection: 'row'}}
-      >
-        <Text style={{fontSize: 20, textAlign: 'center', fontWeight: '200'}}>
-          {wrong} wrong.
-        </Text>
-        <View style={{flex: 1}} />
-        <Text style={{fontSize: 20, textAlign: 'center', fontWeight: '200'}}>
-          {gotten}/{words.length}
-        </Text>
-      </View>
-    </View>
+    )
   }
 }
 
@@ -169,42 +171,41 @@ export default class WordScramble extends React.Component {
   }
 
   onChangeOption(update: $Shape<Options>) {
-    this.setState({ options: { ...this.state.options, ...update } })
+    this.setState({options: {...this.state.options, ...update}})
   }
 
   onStart = () => {
     const {scripture} = this.props
-    this.props.onUpdate({options: {...scripture.options, WordScramble: this.state.options}})
+    this.props.onUpdate({
+      options: {...scripture.options, WordScramble: this.state.options},
+    })
     this.setState({playing: true})
   }
 
   render() {
-    return <View
-      style={{flex: 1, marginTop: 20,}}
-    >
-      <Header
-        onClose={() => this.props.onQuit()}
-        title="Word Scramble"
-      />
-      {this.state.playing
-        ? <Game
-            scripture={this.props.scripture}
-            options={this.state.options}
-          />
-        : <OptionsPicker
-            options={[{
-              type: 'slider',
-              label: 'Size of word bank (smaller is easier)',
-              value: this.state.options.bankSize,
-              step: 1,
-              minimumValue: 5,
-              maximumValue: 15,
-              onChange: bankSize => this.onChangeOption({bankSize}),
-            }]}
-            onStart={this.onStart}
-          />
-        }
-    </View>
+    return (
+      <View style={{flex: 1, marginTop: 20}}>
+        <Header onClose={() => this.props.onQuit()} title="Word Scramble" />
+        {this.state.playing
+          ? <Game
+              scripture={this.props.scripture}
+              options={this.state.options}
+            />
+          : <OptionsPicker
+              options={[
+                {
+                  type: 'slider',
+                  label: 'Size of word bank (smaller is easier)',
+                  value: this.state.options.bankSize,
+                  step: 1,
+                  minimumValue: 5,
+                  maximumValue: 15,
+                  onChange: bankSize => this.onChangeOption({bankSize}),
+                },
+              ]}
+              onStart={this.onStart}
+            />}
+      </View>
+    )
   }
 }
-

@@ -2,7 +2,7 @@
 
 export type Data = {
   scriptures: {[scriptureId: string]: Scripture},
-  tags: {[tagId: string]: Tag}
+  tags: {[tagId: string]: Tag},
   // name?
 }
 
@@ -32,6 +32,6 @@ export type Scripture = {
     [gameId: string]: Array<{
       date: number,
       // any other info that you want to store
-    }>
-  }
+    }>,
+  },
 }

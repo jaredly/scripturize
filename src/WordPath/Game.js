@@ -1,4 +1,4 @@
-import React, {Component} from 'react';
+import React, {Component} from 'react'
 import {css, StyleSheet} from 'aphrodite'
 
 import makeMap from './makeMap'
@@ -73,14 +73,14 @@ export default class WordPath extends Component {
     if (this.state.won) return
     this._touching = {
       x: e.touches[0].clientX - this.state.dx,
-      y: e.touches[0].clientY - this.state.dy
+      y: e.touches[0].clientY - this.state.dy,
     }
   }
 
   onTouchMove = e => {
     if (!this._touching) return
-    const dx = - (e.touches[0].clientX - this._touching.x)
-    const dy = - (e.touches[0].clientY - this._touching.y)
+    const dx = -(e.touches[0].clientX - this._touching.x)
+    const dy = -(e.touches[0].clientY - this._touching.y)
     e.preventDefault()
     e.stopPropagation()
     if (this.moving) {
@@ -91,7 +91,7 @@ export default class WordPath extends Component {
     const ay = Math.abs(dy)
 
     const slider = window.innerWidth / 5
-    if (Math.max(ax, ay) < slider * .5 ) {
+    if (Math.max(ax, ay) < slider * 0.5) {
       if (SLIDE) this.setState({dx, dy})
       return
     }
@@ -103,7 +103,7 @@ export default class WordPath extends Component {
       this.go(0, dy > 0 ? 1 : -1)
     }
     this.moving = true
-    setTimeout(() => this.moving = false, slideTime / 3)
+    setTimeout(() => (this.moving = false), slideTime / 3)
   }
 
   onTouchEnd = e => {
@@ -133,7 +133,7 @@ export default class WordPath extends Component {
       this.go(0, dy > 0 ? 1 : -1)
     }
     this.moving = true
-    setTimeout(() => this.moving = false, slideTime)
+    setTimeout(() => (this.moving = false), slideTime)
   }
 
   go(dx, dy) {
@@ -154,8 +154,10 @@ export default class WordPath extends Component {
             walked: walked.slice(0, -1),
             showWrong: wrong < 2 ? false : this.state.showWrong,
             wrong: Math.max(0, wrong - 1),
-            x: nx, y: ny,
-            dx: 0, dy: 0,
+            x: nx,
+            y: ny,
+            dx: 0,
+            dy: 0,
             taken: {
               ...taken,
               [`${x},${y}`]: false,
@@ -175,7 +177,9 @@ export default class WordPath extends Component {
         nwrong = 1
       }
     }
-    const won = nwrong === 0 && walked.length + 1 === this.state.path.length ? Date.now() : false
+    const won = nwrong === 0 && walked.length + 1 === this.state.path.length
+      ? Date.now()
+      : false
     if (won) {
       this.props.saveScore(GAME_ID, {
         score: won - this.state.start,
@@ -188,8 +192,10 @@ export default class WordPath extends Component {
       showingScores: won,
       wrong: nwrong,
       showWrong: nwrong > 2 ? true : this.state.showWrong,
-      x: nx, y: ny,
-      dx: 0, dy: 0,
+      x: nx,
+      y: ny,
+      dx: 0,
+      dy: 0,
       walked: walked.concat([[nx, ny]]),
       taken: {
         ...taken,
@@ -204,9 +210,14 @@ export default class WordPath extends Component {
     const nwalked = walked.length
     const yn = 5
     const xn = 5
-    const {
-      bigEnough, ux, dless, tx, ty, size
-    } = calcPlacement(x, y, dx, dy, xn, yn)
+    const {bigEnough, ux, dless, tx, ty, size} = calcPlacement(
+      x,
+      y,
+      dx,
+      dy,
+      xn,
+      yn,
+    )
 
     let transform
     if (this.state.won) {
@@ -217,62 +228,57 @@ export default class WordPath extends Component {
       transform = `scale(${scale}, ${scale})`
     } else {
       if (SLIDE) {
-        transform = `translate(${
-              tx - (ux  && bigEnough ? dless: 0)
-            }px, ${
-              ty - (ux || !bigEnough ? 0 : dless)
-            }px)`
+        transform = `translate(${tx - (ux && bigEnough ? dless : 0)}px, ${ty - (ux || !bigEnough ? 0 : dless)}px)`
       } else {
         transform = `translate(${tx}px, ${ty}px)`
       }
     }
 
-    return <div className={css(styles.container)}>
-      {this.state.start && <Timer
-        className={css(styles.timer)}
-        start={this.state.start}
-        end={this.state.won}
-      />}
-      <div className={css(styles.wordBoard)} style={{width: WIDTH, height: HEIGHT}}>
+    return (
+      <div className={css(styles.container)}>
+        {this.state.start &&
+          <Timer
+            className={css(styles.timer)}
+            start={this.state.start}
+            end={this.state.won}
+          />}
         <div
-          style={{
-            transition: bigEnough ? '' : `transform ${slideTime / 1000 * 1}s ease`,
-            transform: transform,
-            transformOrigin: 'top left',
-          }}
+          className={css(styles.wordBoard)}
+          style={{width: WIDTH, height: HEIGHT}}
         >
-          <WalkTiles
-            size={size}
-            wrong={this.state.wrong}
-            walked={this.state.walked}
-            showWrong={this.state.showWrong}
-          />
-          <WordBoard
-            matrix={matrix}
-            size={size}
-          />
+          <div
+            style={{
+              transition: bigEnough
+                ? ''
+                : `transform ${slideTime / 1000 * 1}s ease`,
+              transform: transform,
+              transformOrigin: 'top left',
+            }}
+          >
+            <WalkTiles
+              size={size}
+              wrong={this.state.wrong}
+              walked={this.state.walked}
+              showWrong={this.state.showWrong}
+            />
+            <WordBoard matrix={matrix} size={size} />
+          </div>
         </div>
+        <PreviewText walked={this.state.walked} matrix={this.state.matrix} />
+        {this.state.showingScores &&
+          <Scores
+            text={this.state.text}
+            scores={this.props.scores[GAME_ID] || []}
+            justNow={this.state.won}
+            close={() => this.setState({showingScores: false})}
+            playAgain={this.playAgain}
+          />}
+        {this.state.won &&
+          <button onClick={this.playAgain} className={css(styles.button)}>
+            Play again
+          </button>}
       </div>
-      <PreviewText
-        walked={this.state.walked}
-        matrix={this.state.matrix}
-      />
-      {this.state.showingScores &&
-        <Scores
-          text={this.state.text}
-          scores={this.props.scores[GAME_ID] || []}
-          justNow={this.state.won}
-          close={() => this.setState({showingScores: false})}
-          playAgain={this.playAgain}
-        />}
-      {this.state.won &&
-        <button
-          onClick={this.playAgain}
-          className={css(styles.button)}
-        >
-          Play again
-        </button>}
-    </div>
+    )
   }
 }
 

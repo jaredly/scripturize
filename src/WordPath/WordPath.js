@@ -1,14 +1,18 @@
 // @flow
-import React from 'react';
-import { StyleSheet, Text, View, AsyncStorage,
+import React from 'react'
+import {
+  StyleSheet,
+  Text,
+  View,
+  AsyncStorage,
   TouchableOpacity,
   ScrollView,
   WebView,
   Button,
   Switch,
   Slider,
-} from 'react-native';
-import { Ionicons } from '@expo/vector-icons'
+} from 'react-native'
+import {Ionicons} from '@expo/vector-icons'
 import wordSplit from '../wordSplit'
 import Header from '../Header'
 import OptionsPicker from '../Options'
@@ -16,7 +20,7 @@ import Measurer from '../Measurer'
 import Game from './Game'
 
 type Options = {
-  // wordsAtOnce: number,  
+  // wordsAtOnce: number,
 }
 
 export default class WordPath extends React.Component {
@@ -43,40 +47,35 @@ export default class WordPath extends React.Component {
   }
 
   onChangeOption(update: $Shape<Options>) {
-    this.setState({ options: { ...this.state.options, ...update } })
+    this.setState({options: {...this.state.options, ...update}})
   }
 
   onStart = () => {
     const {scripture} = this.props
-    this.props.onUpdate({options: {...scripture.options, Snake: this.state.options}})
+    this.props.onUpdate({
+      options: {...scripture.options, Snake: this.state.options},
+    })
     this.setState({playing: true})
   }
 
   render() {
-    return <View
-      style={{flex: 1, marginTop: 20,}}
-    >
-      <Header
-        onClose={() => this.props.onQuit()}
-        title="Snake"
-      />
-      {this.state.playing
-        ? <Measurer
-            Game={Game}
-            boardSize={this.state.boardSize}
-            textStyle={{
-              fontSize: 15,
-              fontWeight: '200',
-            }}
-            words={this.state.words}
-            scripture={this.props.scripture}
-            options={this.state.options}
-          />
-        : <OptionsPicker
-            options={[]}
-            onStart={this.onStart}
-          />
-        }
-    </View>
+    return (
+      <View style={{flex: 1, marginTop: 20}}>
+        <Header onClose={() => this.props.onQuit()} title="Snake" />
+        {this.state.playing
+          ? <Measurer
+              Game={Game}
+              boardSize={this.state.boardSize}
+              textStyle={{
+                fontSize: 15,
+                fontWeight: '200',
+              }}
+              words={this.state.words}
+              scripture={this.props.scripture}
+              options={this.state.options}
+            />
+          : <OptionsPicker options={[]} onStart={this.onStart} />}
+      </View>
+    )
   }
 }

@@ -1,13 +1,17 @@
 // @flow
-import React from 'react';
-import { StyleSheet, Text, View, AsyncStorage,
+import React from 'react'
+import {
+  StyleSheet,
+  Text,
+  View,
+  AsyncStorage,
   TouchableWithoutFeedback,
   TouchableOpacity,
   ScrollView,
   Button,
   Switch,
-} from 'react-native';
-import { Ionicons } from '@expo/vector-icons'
+} from 'react-native'
+import {Ionicons} from '@expo/vector-icons'
 import wordSplit from './wordSplit'
 import Header from './Header'
 import OptionsPicker from './Options'
@@ -26,8 +30,7 @@ class FastWord extends React.Component {
   }
 
   shouldComponentUpdate(nextProps, nextState) {
-    return nextProps.i !== this.props.i
-      || nextState !== this.state
+    return nextProps.i !== this.props.i || nextState !== this.state
   }
 
   componentWillMount() {
@@ -47,24 +50,24 @@ class FastWord extends React.Component {
   render() {
     const {peek, current} = this.state
     const {revealed, word, onTap} = this.props
-    return <TouchableWithoutFeedback
-      onPress={onTap}
-    >
-    <View>
-    <Text
-      style={{
-        backgroundColor: current ? '#fcc' : '#fee',
-        padding: 3,
-        margin: 2,
-        color: (revealed || (current && peek)) ? 'black' : 'transparent',
-        fontSize: 25,
-        fontWeight: '200',
-      }}
-    >
-      {word}
-    </Text>
-    </View>
-    </TouchableWithoutFeedback>
+    return (
+      <TouchableWithoutFeedback onPress={onTap}>
+        <View>
+          <Text
+            style={{
+              backgroundColor: current ? '#fcc' : '#fee',
+              padding: 3,
+              margin: 2,
+              color: revealed || (current && peek) ? 'black' : 'transparent',
+              fontSize: 25,
+              fontWeight: '200',
+            }}
+          >
+            {word}
+          </Text>
+        </View>
+      </TouchableWithoutFeedback>
+    )
   }
 }
 
@@ -82,11 +85,14 @@ class FastWordShower extends React.Component {
 
   register = (i, fn) => {
     this.listeners[i] = fn
-    return () => this.listeners[i] = null
+    return () => (this.listeners[i] = null)
   }
 
   componentWillReceiveProps(nextProps) {
-    if (nextProps.current !== this.props.current || nextProps.peek !== this.props.peek) {
+    if (
+      nextProps.current !== this.props.current ||
+      nextProps.peek !== this.props.peek
+    ) {
       this.parent.current = nextProps.current
       this.parent.peek = nextProps.peek
       if (this.listeners[nextProps.current]) {
@@ -100,30 +106,30 @@ class FastWordShower extends React.Component {
 
   render() {
     const {words, revealed} = this.props
-    return <ScrollView
-      style={{flex: 1}}
-    >
-      <View
-        style={{
-          flexWrap: 'wrap',
-          flexDirection: 'row',
-          alignItems: 'flex-start',
-          marginTop: 10,
-        }}
-      >
-        {words.map((word, i) => (
-          <FastWord
-            i={i}
-            key={i}
-            word={word}
-            parent={this.parent}
-            revealed={revealed[i]}
-            register={this.register}
-            onTap={() => this.props.setIndex(i)}
-          />
-        ))}
-      </View>
-    </ScrollView>
+    return (
+      <ScrollView style={{flex: 1}}>
+        <View
+          style={{
+            flexWrap: 'wrap',
+            flexDirection: 'row',
+            alignItems: 'flex-start',
+            marginTop: 10,
+          }}
+        >
+          {words.map((word, i) => (
+            <FastWord
+              i={i}
+              key={i}
+              word={word}
+              parent={this.parent}
+              revealed={revealed[i]}
+              register={this.register}
+              onTap={() => this.props.setIndex(i)}
+            />
+          ))}
+        </View>
+      </ScrollView>
+    )
   }
 }
 
@@ -176,7 +182,7 @@ class Game extends React.Component {
     this._int = setInterval(() => {
       if (this.state.done || this.state.index >= this.state.words.length) {
         clearInterval(this._int)
-        this.setState({ auto: false })
+        this.setState({auto: false})
       } else {
         this.next()
       }
@@ -189,46 +195,54 @@ class Game extends React.Component {
 
   render() {
     const {words, index, auto, revealed, peek} = this.state
-    return <View
-      style={{flex: 1}}
-    >
-      <FastWordShower
-        words={words}
-        revealed={revealed}
-        peek={peek || auto}
-        current={index}
-        setIndex={index => this.setState({index})}
-      />
-      <View style={{
-        flexDirection: 'row',
-        alignSelf: 'stretch',
-      }}>
-        <MButton
-          text={auto ? 'Stop' : 'Auto'}
-          onPress={this.auto}
-          style={{flex: 1}}
+    return (
+      <View style={{flex: 1}}>
+        <FastWordShower
+          words={words}
+          revealed={revealed}
+          peek={peek || auto}
+          current={index}
+          setIndex={index => this.setState({index})}
         />
-        <MButton
-          text={index === words.length - 1 ? 'Done' : "Next"}
-          onPress={this.next}
-          style={{flex: 1}}
-        />
-        <TouchableOpacity
-          onPressIn={() => this.setState({peek: true})}
-          onPressOut={() => this.setState({peek: false})}
-          style={[{
-            padding: 10,
-            alignItems: 'center',
-            flex: 1,
-          }]}
+        <View
+          style={{
+            flexDirection: 'row',
+            alignSelf: 'stretch',
+          }}
         >
-          <Text style={{
-            color: 'blue',
-            fontSize: 20,
-          }}>Peek</Text>
-        </TouchableOpacity>
+          <MButton
+            text={auto ? 'Stop' : 'Auto'}
+            onPress={this.auto}
+            style={{flex: 1}}
+          />
+          <MButton
+            text={index === words.length - 1 ? 'Done' : 'Next'}
+            onPress={this.next}
+            style={{flex: 1}}
+          />
+          <TouchableOpacity
+            onPressIn={() => this.setState({peek: true})}
+            onPressOut={() => this.setState({peek: false})}
+            style={[
+              {
+                padding: 10,
+                alignItems: 'center',
+                flex: 1,
+              },
+            ]}
+          >
+            <Text
+              style={{
+                color: 'blue',
+                fontSize: 20,
+              }}
+            >
+              Peek
+            </Text>
+          </TouchableOpacity>
+        </View>
       </View>
-    </View>
+    )
   }
 }
 
@@ -256,61 +270,69 @@ export default class SlideReveal extends React.Component {
   }
 
   onChange(update: $Shape<Options>) {
-    this.setState({ options: { ...this.state.options, ...update } })
+    this.setState({options: {...this.state.options, ...update}})
   }
 
   onStart = () => {
     const {scripture} = this.props
-    this.props.onUpdate({options: {...scripture.options, SlideReveal: this.state.options}})
+    this.props.onUpdate({
+      options: {...scripture.options, SlideReveal: this.state.options},
+    })
     this.setState({playing: true})
   }
 
   render() {
-    return <View
-      style={{flex: 1, marginTop: 20,}}
-    >
-      <Header
-        onClose={() => this.props.onQuit()}
-        title="Slide Reveal"
-      />
-      {this.state.playing
-        ? <Game
-            scripture={this.props.scripture}
-            options={this.state.options}
-          />
-        : <OptionsPicker
-            options={[{
-              label: 'Show keywords',
-              value: this.state.options.showKeywords,
-              type: 'switch',
-              onChange: showKeywords => this.onChange({showKeywords}),
-            }, {
-              label: 'Speed of auto-reveal',
-              value: this.state.options.autoSpeed,
-              minimumValue: 100,
-              maximumValue: 200,
-              step: 10,
-              type: 'slider',
-              onChange: autoSpeed => this.onChange({autoSpeed}),
-            }]}
-            onStart={this.onStart}
-          />
-        }
-    </View>
+    return (
+      <View style={{flex: 1, marginTop: 20}}>
+        <Header onClose={() => this.props.onQuit()} title="Slide Reveal" />
+        {this.state.playing
+          ? <Game
+              scripture={this.props.scripture}
+              options={this.state.options}
+            />
+          : <OptionsPicker
+              options={[
+                {
+                  label: 'Show keywords',
+                  value: this.state.options.showKeywords,
+                  type: 'switch',
+                  onChange: showKeywords => this.onChange({showKeywords}),
+                },
+                {
+                  label: 'Speed of auto-reveal',
+                  value: this.state.options.autoSpeed,
+                  minimumValue: 100,
+                  maximumValue: 200,
+                  step: 10,
+                  type: 'slider',
+                  onChange: autoSpeed => this.onChange({autoSpeed}),
+                },
+              ]}
+              onStart={this.onStart}
+            />}
+      </View>
+    )
   }
 }
 
 const MButton = ({onPress, text, style}) => (
   <TouchableOpacity
     onPress={onPress}
-    style={[{
-      padding: 10,
-      alignItems: 'center',
-    }, style]}
+    style={[
+      {
+        padding: 10,
+        alignItems: 'center',
+      },
+      style,
+    ]}
   >
-    <Text style={{
-      color: 'blue',
-      fontSize: 20,
-    }}>{text}</Text>
+    <Text
+      style={{
+        color: 'blue',
+        fontSize: 20,
+      }}
+    >
+      {text}
+    </Text>
   </TouchableOpacity>
 )
